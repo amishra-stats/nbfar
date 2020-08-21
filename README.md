@@ -1,1 +1,1 @@
-# Negative Binomial Factor Model forMicrobiome Abundance Data
+# Negative binomial factor model for analyzing microbiome count data
