@@ -1,0 +1,15 @@
+Package: nbfar
+Type: Package
+Title: Negative Binomial Co-Sparse Factor Regression
+Version: 0.1
+Date: 2019-09-11
+Author: Aditya Mishra [aut, cre], Christian Muller [aut]
+Maintainer: Aditya Mishra <amishra@flatironinstitute.org>
+Description: Sequential  estimation of  low-rank and sparse coefficient matrix in the negative binomial co-sparse factor regression.
+Depends: R (>= 3.4), stats, utils
+Imports: Rcpp (>= 0.12.9), MASS, magrittr, rrpack, glmnet
+License: GPL (>= 3.0)
+LazyData: TRUE
+LinkingTo: Rcpp, RcppArmadillo
+NeedsCompilation: yes
+RoxygenNote: 7.1.1
