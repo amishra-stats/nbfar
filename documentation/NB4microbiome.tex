@@ -1,0 +1,739 @@
+\documentclass[12pt]{article}
+\bibliographystyle{plainnat}
+\usepackage{setspace}
+%\usepackage[left=2.5cm,top=2cm,right=2.5cm,bottom=2cm]{geometry}
+\usepackage{geometry}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{natbib}
+\usepackage{changepage}
+\usepackage{graphicx}
+\usepackage{url}
+%\usepackage{lineno}
+\usepackage{rotating}
+\usepackage{pdflscape}
+%\usepackage{amsmath}
+%\usepackage{url}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+
+\usepackage{authblk}
+\usepackage{paralist, algorithmic,algorithm}
+\usepackage{url}
+%\usepackage{epspdfconversion}
+\usepackage{array,booktabs}
+\usepackage[usenames]{color}
+\usepackage{placeins}
+\usepackage{float}
+\usepackage{subfig}
+\usepackage{mathabx}
+\usepackage{afterpage}
+\usepackage[export]{adjustbox}
+%\usepackage{epstopdf}
+\usepackage[outdir=./]{epstopdf}
+\usepackage[pdftex, plainpages=false, pdfpagelabels]{hyperref}
+\hypersetup{
+    linktocpage=true,
+    %colorlinks=true,
+    bookmarks=true,
+    %citecolor=blue,
+    %urlcolor=red,
+    %linkcolor=Maroon,
+    %citebordercolor={1 0 0},
+    %urlbordercolor={1 0 0},
+    %linkbordercolor={.7 .8 .8},
+    breaklinks=true,
+    pdfpagelabels=true,
+    }
+ \usepackage{tabu}
+\usepackage{listings}
+\usepackage{lstbayes}
+\usepackage[table]{xcolor}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstset{
+%basicstyle=\small\ttfamily,
+%  keywordstyle=\color{blue},
+%  stringstyle=\color{purple},
+%columns=flexible,
+%breaklines=true
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\tiny, % \ttfamily\footnotesize
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+
+\doublespacing
+\input{myCommand.tex}
+\def\trans{^{\rm T}}
+\def\strans{^{*\rm T}}
+\newcommand{\bbR}{\mathbb{R}}
+\newcommand{\td}{\tilde{d}}
+\newcommand{\hd}{\widehat{d}}
+\newcommand{\wz}{\widehat{\z}}
+\newcommand{\pz}{p_z}
+%\newcommand{\bbL}{\mathbb{L}}
+\newcommand{\bbL}{\mathcal{L}}
+\newcommand{\mcA}{\mathcal{A}}
+\newcommand{\gammaL}{\underbar{$\gamma$}}
+\newcommand{\rhoL}{\underbar{$\rho$}}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\newcommand{\bs}{\boldsymbol}
+\newcommand{\cb}{\color{blue}}
+\newcommand{\CR}{\color{red}}
+\DeclareMathOperator{\Tr}{tr}
+\DeclareMathOperator{\EX}{\mathbb{E}}% 
+\newcommand{\Var}{\mathrm{Var}}
+
+%\DeclareMathOperator{\VAR}{\mathbb{Var}}% 
+
+
+
+%\newcommand{\wz}{\widehat{\z}}
+
+
+\usepackage{rotating}
+
+
+\title{Negative binomial factor model for analyzing microbiome count data}
+\author{}
+\date{\today}
+
+\begin{document}
+\sloppy
+\maketitle
+%\begin{abstract}
+%xx
+%\end{abstract}
+
+\section{Introducttion}\label{sec:intro}
+{\cb xxx; thetta def; }
+\section{Method}\label{sec:method}
+We consider the microbial abundance data of count type obtained after high-throughput sequencing of $n$ samples as $\Y = [y_{ik}]_{n \times q}   = [\y_1,\ldots,\w_n]\trans \in\mathbb{R}^{n\times q}$. The problem of interest is to understand the association of the abundance $\Y$ to  predictors/features $\X =[\x_1,\ldots,\x_n]\trans \in \mathbb{R}^{n\times p}$, and control variables $\Z =  [\z_1,\ldots,\z_n]\trans \in \mathbb{R}^{n\times c}$. {\cb $\Z$ consists of a set of variables that should always be included in the model and are thus not regularized. Depending on the application, we consider experimental input such as age, gender (factor variable) as control variables.} A typical characteristic of the abundance data is overdispersion (variance larger than mean). 
+In the multivariate regression framework with the outcome  $\Y$  and covariates \{$\X, \Z$\}, we  assume that the abundance of each of the  microbial species  follows  negative binomial distribution to model the underlying association between the two entity.   
+
+
+
+Using the alternative  form  of the negative binomial distribution \citep{zeileis2008regression}, a generative model for the microbial abundance of  the $j$th species in $i$th sample is given by 
+\begin{align}
+p(y_{ij}; \mu_{ij}, \phi_j)  = \M{NB}(y_{ij};  \mu_{ij}^*, \phi_j^*) = {y_{ij} + \phi_j^* -1 \choose y_{ij}}  \frac{{\mu_{ij}^*}^{y_{ij}} {\phi_j^*}^{\phi_j^*} }{(\mu_{ij}^* + \phi_j^*)^{y_{ij} + \phi_j^*} },\label{eq:mem_main}
+\end{align}
+where  $\mu_{ij}^*$ is the entry specific mean  and $\phi_j \in \mathbb{R}^+$ is the species specific dispersion parameter. Let us jointly represent   the  dispersion  parameters for  $q$ species by  $\bs\Phi^* = [\phi_1^*, \ldots, \phi_q^*]$ and the entry specific parameter by $\bs\mu^* = [\mu_{ij}^*]_{n \times q}$.  For the generative model \eqref{eq:mem_main},   $\EX(y_{ij}) =  \mu_{ij}^*$, $\var(y_{ij}) = \mu_{ij}^* + \frac{{\mu_{ij}^*}^2 }{\phi_j^*}$ and $\var(y_{ij}) \geq \EX(y_{ij})$,  making the model suitable for modeling the overdispersed count data of microbial abundance.  %We collectively denote the natural parameters of $\Y$  by $\bs\Theta^* = [\theta_{ik}^*]_{n \times q}  \in \mathbb{R}^{n \times q}$ and the  dispersion parameters by $\bPhi^* = \diag[a_1(\phi_1^*), \ldots, a_q(\phi_q^*)]$. Let $g_k=(b_k')^{-1}$ be the canonical link function. Consequently,  $\mathbb{E}(y_{ik})= b_k'(\theta_{ik}^*)= g_k^{-1}(\theta_{ik}^*)$, where $b_k^'(\cdot)$ denotes the derivative function of $b_k(\cdot)$.
+Then the joint negative log-likelihood function is given by 
+\begin{align}
+\bbL(\bs\mu^*, \bPhi^*) =  -\sum_{i=1}^n\sum_{k=1}^q \ell_k(\mu_{ik}^*,\phi_k^*)  ,\label{eq:negLogLi}
+\end{align}
+where $\ell_k(\mu_{ik}^*,\phi_k^*) = \log{p(y_{ik};\mu_{ik}^*,\phi_k^*)}$. 
+
+We associate covariates to the multivariate outcome by linking the entry specific parameter $\bs\mu^*$ to the linear predictors $\bs\eta^* = [\eta_{ij}^*]_{n \times q}$ given  by 
+\begin{align}
+g(\bs\mu^*) = \bs\eta^*(\C^*,\bbeta^*, \bO) = \bO + \Z\bbeta^* + \X\C^*, \label{eq:ThetaDef}
+\end{align}
+where $g(\cdot)$ is any link function, $ \bO  = [o_{ik}]_{n \times q} \in \mathbb{R}^{n \times q}$ is a fixed offset term, $\C^*=[\c_1^*,\ldots,\c_q^*] \in \mathbb{R}^{p\times q}$ is the coefficient matrix corresponding to the predictors, and $\bbeta=[\bbeta_1^*,\ldots,\bbeta_q^*]  \in \mathbb{R}^{p_z\times q}$ is the coefficient matrix corresponding to the control variables. 
+The intercept is included by taking the first column of $\Z$ to be $\1_n$, the $n\times 1$ vector of ones. We choose $g(x) = \log{x}$ as our link function. Depending on the problem, one may choose another link function satisfying $\bs\mu^* \geq 0$.  For simplicity, we may write $\bs\eta^*(\C^*,\bbeta^*, \bO)$ as $\bs\eta^*$ if no confusion arises. 
+
+
+%\begin{itemize}
+%\item For fixed $\phi$ exponential family of disttribution 
+%\end{itemize}
+
+
+
+ %We assume that each of the response variables follows a distribution in the exponential-dispersion family \citep{jorgensen1987exponential}. 
+%The probability density function of the $i$th entry in the $k$th outcome, $y_{ik}$, is given by 
+%\begin{align}
+%f(y_{ik};\theta_{ik}^*,\phi_k^*) = \exp\left\{\frac{y_{ik}\theta_{ik}^*-b_k(\theta_{ik}^*)}{a_k(\phi_k^*)}+c_k(y_{ik};\phi_k^*)\right\},\label{eq:glmmodel}
+%\end{align}
+%where $\theta_{ik}^*$ is the natural parameter, $\phi_k^* \in \mathbb{R}^+$ is the dispersion parameter, and $\{a_k(\cdot)$, $b_k(\cdot)$, $c_k(\cdot)\}$ are functions determined by the specific distribution; see Table \ref{tab:dist} in the Supplementary Materials for more details on some of the standard distributions in the exponential family,  e.g., Gaussian, Poisson and Bernoulli. 
+%We collectively denote the natural parameters of $\Y$  by $\bs\Theta^* = [\theta_{ik}^*]_{n \times q}  \in \mathbb{R}^{n \times q}$ and the  dispersion parameters by $\bPhi^* = \diag[a_1(\phi_1^*), \ldots, a_q(\phi_q^*)]$. Let $g_k=(b_k')^{-1}$ be the canonical link function. Consequently,  $\mathbb{E}(y_{ik})= b_k'(\theta_{ik}^*)= g_k^{-1}(\theta_{ik}^*)$, where $b_k^'(\cdot)$ denotes the derivative function of $b_k(\cdot)$.
+
+
+%We model the natural parameter matrix $\bs\Theta^*$ as
+%\begin{align}
+%\bs \Theta(\C^*,\bbeta^*, \bO) = \bO + \Z\bbeta^* + \X\C^*, \label{eq:ThetaDef}
+%\end{align}
+%where $ \bO  = [o_{ik}]_{n \times q} \in \mathbb{R}^{n \times q}$ is a fixed offset term, $\C^*=[\c_1^*,\ldots,\c_q^*] \in \mathbb{R}^{p\times q}$ is the coefficient matrix corresponding to the predictors, and $\bbeta=[\bbeta_1^*,\ldots,\bbeta_q^*]  \in \mathbb{R}^{p_z\times q}$ is the coefficient matrix corresponding to the control variables. 
+%The intercept is included by taking the first column of $\Z$ to be $\1_n$, the $n\times 1$ vector of ones. For simplicity, we may write $\bs\Theta(\C^*,\bbeta^*, \bO)$ as $\bs\Theta^*$ if no confusion arises.
+
+%Corresponding to the outcomes in $\Y$, $\bs\Theta = [\theta_{ik}]_{n \times q}  \in \mathbb{R}^{n \times q}$ denotes their natural parameters. %and model functions  are known for a specific distribution; see Table \ref{tab:dist} for more details.
+
+%To proceed further, we define some notations. The $k$th column of $\bs\Theta^*$ is denoted  $\bs\Theta_{.k}^*$, and consequently $\b_k(\bs\Theta_{.k}^*) = [b_k(\theta_{ik}^*), \ldots, b_k(\theta_{nk}^*)]\trans$. The elementwise derivative vector of $\b_k(\bs\Theta_{.k}^*)$ is $\b_k^'(\bs\Theta_{.k}^*) = [b_k^'(\theta_{ik}^*), \ldots,b_k^' (\theta_{nk}^*)]\trans$. We then define
+%\begin{align}
+%\bB(\bs\Theta^*) = [\b_1(\bs\Theta_{.1}^*),\ldots,\b_q(\bs\Theta_{.q}^*)], \quad \bB^'(\bs\Theta^*) = [\b_1^'(\bs\Theta_{.1}^*),\ldots,\b_q^'(\bs\Theta_{.q}^*) ]. \label{eq:defbtheta}
+%\end{align}
+%Similarly, $\bB''(\bs\Theta^*)$ denotes the second-order derivative of $\bB(\bs\Theta^*)$. 
+
+
+We assume the outcomes are conditionally independent given $\X$ and $\Z$. %Then the joint negative log-likelihood function is given by 
+%\begin{align}
+%\bbL(\bs\mu, \bPhi^*) =  -\sum_{i=1}^n\sum_{k=1}^q \ell_k(\mu_{ik}^*,\phi_k^*)  ,\label{eq:negLogLi}
+%\end{align}
+%where $\ell_k(\mu_{ik}^*,\phi_k^*) = \log{p(w_{ik};\mu_{ik}^*,\phi_k^*)}$. 
+For fixed dispersion parameter $\phi_j^*$, the negative binomial distribution \eqref{eq:mem_main} belongs to the exponential family. Hence, we reparameterize and  conveniently express the negative log-likelihood function \eqref{eq:negLogLi} as 
+\begin{align}
+\bbL(\bs\Theta^*, \bPhi^*)  = - \Tr(\Y\trans \bs\Theta^*) + \Tr({\J}\trans \bB(\bs\Theta^*)) + \sum_{i,\,j} \log {y_{ij} + \phi_j^* -1 \choose y_{ij}},
+\label{eq:negLmat}
+\end{align}
+where $\J = \1_{n \times q}$, $ \Tr( \A)$ is the \textit{trace} of a square  matrix $\A$, $\bB(\bs\Theta^*) =  [b(\theta_{ij}^*)]_{n \times q}$ and $\bs\Theta^* = [\theta_{ij}^*]_{n \times q} \in \bbR^{n \times q}$ is the natural parameter of the exponential family  when $\bPhi^*$ is fixed such that   $\theta_{ij}^* = \log\frac{\mu_{ij}^*}{\mu_{ij}^* + \phi_j^*}$ and $b(\theta_{ij}^*) = -\phi_j^*\log(1 - e^{\theta_{ij}^*})$. It is trivial to show that $\mu_{ij}^* = b'(\theta_{ij}^*)$. Then, one can link $\theta_{ij}^*$ to the linear predictor as $g(b'(\theta_{ij}^*) = \eta_{ij}^*$. 
+% Using the definition from \eqref{eq:defbtheta}, a convenient  representation of \eqref{eq:negLogLi} is given by 
+%\begin{align}
+%%bbL(\C,\bbeta,\bPhi;\bO) = 
+%\bbL(\bs\Theta^*,\bPhi^*)  = - \Tr(\Y\trans \bs\Theta^* \bPhi^{-1}^* ) + \Tr({\J}\trans\bB(\bs\Theta^*)\bPhi^{-1}^*),\label{eq:negLmat}% = - \tr(\Y\trans\bs\Theta\bPhi^{-1}) +  \tr(\J\trans\bB(\bs\Theta)\bPhi^{-1}) 
+%\end{align}
+%where $\J = \1_{n \times q}$, and $ \Tr( \A)$ is the \textit{trace} of a square  matrix $\A$. 
+For missing entries in $\Y$, let us define an index set of the observed outcomes as
+$$
+\bs\Omega = \{(i,k); w_{ik} \mbox{ is observed}, i=1,\ldots,n, k=1,\ldots,q\},
+$$
+and denote the projection of $\Y$ onto $\bs\Omega$ by $\widetilde{\Y}= \mathcal{P}_{\bs\Omega}(\Y)$, where $\tilde{y}_{ik} = y_{ik}$ for any $(i,k)\in\bs\Omega$ and  $\tilde{y}_{ik}=0$ otherwise. 
+Accordingly, the negative log-likelihood function with incomplete data is given by 
+\begin{align*}
+\bbL(\bs\Theta^*,\bPhi^* )  = - \Tr( \widetilde{\Y}\trans\bs\Theta^*  ) + \Tr( \widetilde{\J}\trans\bB(\bs\Theta^*) ) + \sum_{i,\,j \in \bs\Omega} \log {y_{ij} + \phi_j^* -1 \choose y_{ij}}, 
+\end{align*}
+where $\widetilde{\J} = \mathcal{P}_{\bs\Omega}(\J)$ and $g(b'(\bs\Theta^*) = \bs\eta^*$. 
+% and $\widetilde{\J} = \mathcal{P}_{\Omega}(\J)$, and $ \Tr( \A, \bB ) = \tr(\A\trans\bB) $ is  the \textit{trace/dot product} operator on the two involved matrices.  
+Henceforth, we mainly focus on the complete data case \eqref{eq:negLmat} when presenting our proposed model, as the extension to the missing data case by and large only requires replacing $\Y$ by $\widetilde{\Y}$ and $\J$ by $\widetilde{\J}$.
+
+
+
+
+
+{\cb We minimize $\bbL(\bs\Theta,\bPhi )$ with respect to $\{\C, \bbeta, \bPhi\}$ to estimate the model parameters such that  $g(b'(\bs\Theta)) = \bs\eta =  \bO + \X\C + \Z\bbeta$ and $\bPhi = [\phi_1,\ldots,\phi_j]$. In the marginal modeling approach, one can separately  estimate the model parameters for each outcomes using the framework of negative binomial regression model \citet{zeileis2008regression}. However, in high-dimensional setting,  the procedure ignores the dependency among the outcomes. Some of the recent development in the field of multivariate  regression models with non-Gaussian outcomes  models underlying dependency using low-rank sparse coefficient matrix.  
+%For fixed dispersion parameter $\bPhi$, without imposing additional structural assumptions on the parameters, maximum likelihood estimation, i.e.,  minimizing $\bbL(\bs\Theta)$ with respect to  $\{\C, \bbeta\}$ for $g(b'(\bs\Theta)) = \bs\eta =  \bO + \X\C + \Z\bbeta$, does not work in high-dimensional settings with outcomes related. The marginal modeling approach, i.e., the fitting of a univariate generalized linear model (uGLM) (or its regularized version) for each individual response, would ignore the dependency among the outcomes. 
+}
+
+We represent the underlying association in terms a few latent factors,  each of which is constructed   as  a linear combination of covariates, resulting in the coefficient matrix $\C^*$ to be of low-rank given by 
+%To model the underlying association, we regularize the coefficient matrix by imposing rank constraint, i.e., 
+\begin{align}
+\M{rank}(\C^*) \leq r^*. \label{sec2:intro:clrank}
+\end{align}
+%We  term the proposed model  {\bf r}ank constrained {\bf N}egative {\bf b}inomial  {\bf fa}ctor {\bf r}egression, denoted by  NBFAR(r).
+We  term the proposed model   {\bf N}egative {\bf b}inomial  {\bf r}educed {\bf r}ank {\r}egression, denoted by  \textsf{NBRRR}.
+Parameters estimate under the constraint have limited usage as it does not explore variable selection.  On the other hand, in high dimensional setting,  we assume that the regression association is driven by a few latent factors, each of which is constructed from a possibly different subset of the predictors, and, moreover, that each response may be associated with a possibly different subset of the latent factors. To be specific, this amounts to assuming a \emph{co-sparse} SVD of $\C^*$ \citep{mishra2017sequential}, i.e., we decompose $\C^*$ as 
+\begin{align}
+\C^* = \U^* \D^*\V^*\trans , \qquad \M{s.t.} \qquad \U^*\trans\X\trans\X\U^*/n = \V^*\trans\V^* = \I_{r^*},\label{sec2:intro:cdef}
+\end{align}
+where both the left singular vector matrix $\U^* = [\u_1^*,\ldots,\u^*_{r^*}] \in \bbR^{p \times {r^*}}$ and the right singular vector matrix $\V^* = [\v_1^*,\ldots,\v^*_{r^*}] \in \bbR^{q \times r}$ are assumed to be \emph{sparse}, and $\D = \M{diag}\{d_1^*,\ldots,d_{r^*} \} \in \bbR^{{r^*} \times {r^*}}$ is the diagonal matrix with the nonzero singular values on its diagonal. {%\color{red}
+ The orthogonality constraints ensuring identifiability suggest that the sample latent factors, i.e., $(1/\sqrt{n})\X\u_k^*$ for $k=1,\ldots,r^*$, are uncorrelated with each other, and the strength of the association between the latent factors and multivariate response $\Y$ is denoted by the singular values $\{d_1^*,\ldots,d_{r^*} \}$.}
+%Figure \ref{fig:gofar-model} shows a diagram of the proposed model structure. % and the simulation setup in Section \ref{subsec2:simsetup} formulates a  corresponding co-sparse $\C^*$.  
+We thus term the proposed model  {\bf s}parse {\bf N}egative {\bf b}inomial  {\bf fa}ctor {\bf r}egression, denoted by  \textsf{NBFAR}.\\
+
+
+
+
+\section{Estimation procedures}\label{sec:compu}
+
+Joint estimation of the $\{\C, \bbeta, \bPhi\}$ with suggested structures in Equation \eqref{sec2:intro:clrank} or Equation \eqref{sec2:intro:cdef}    is a notoriously difficult estimation problem. In the marginal modeling approach, \citet{zeileis2008regression} proposed an iterative  procedure that  update one parameters by keeping others fixed until convergence. In case of multivariate regression model with mixed outcomes, \citet{chenandluo2017,mishra2017sequential} proposed a similar alternating approach to estimate the structured model parameters. Following \citet{chenandluo2017}, we propose an iterative procedure that cycles between  $\C$-step, $\bbeta$-step and $\bPhi$-step   to  estimate the model parameters in case of NBRRR. On the other hand,  in case of NBFAR, the main idea is to extract the unit-rank components of $\X\C$ one by one, i.e., sequentially; see \citet{mishra2017sequential}.   The optimization problem to estimate the unit-rank components is solved by an iterative procedure that cycles between  $\u$-step, $\v$-step, $\bbeta$-step and $\bPhi$-step until convergence   \citep{mishra2017sequential}. 
+
+
+%When dispersion parameter $\bPhi$ is not fixed, the generative model do not fall under the framework of exponential distribution. However, following \citet{zeileis2008regression,chenandluo2017},  one can  estimate the model parameters by an alternating strategy, where  one set of parameters is estimated by  keeping others fixed. For instance, we update $\bPhi$ with an estimate that increases $\bbL(\bs\mu, \bPhi)$ \eqref{eq:negLogLi} for  fixed $\bs\mu$ because of fixed $\C$ and $\bbeta$. In case  of NBRRR, we follow \citet{chenandluo2017} and propose an iterative procedure that cycles between  $\C$-step, $\bbeta$-step and $\bPhi$-step   to  estimate the model parameters. In case of NBFAR, the main idea is to extract the unit-rank components of $\C$ or $\X\C$ one by one, i.e., sequentially; see \citet{mishra2017sequential}. 
+
+
+
+
+
+% Highlight sequentiaal approach of extracting unit ranks till convergence; uuse cross validation for selection of the unit ranks
+
+%Propose unit rank algorithm and combine into one algorithm 
+
+\subsection{NBRRR}\label{sec:rcnbfar}
+%To focus on the estimation strategy of structured $\C$ and $\bbeta$, we assume $\bPhi$ is fixed. %For a given rank $r$ and the offset term $\bO$,  consider 
+%The rank constrained optimization problem of  NBRRR is given by 
+The optimization problem to estimate the parameters of   NBRRR is given by 
+\begin{align}
+(\widehat{\C}, \widehat{\bbeta}, \widehat{\bPhi}) \equiv \argmin_{\C,\,\, \bbeta, \,\, \bPhi}  \bbL(\bs\Theta, \bPhi)  \qquad \M{s.t.} \qquad \M{rank}(\C) \leq r, \label{eq:gsfar:obj1}
+%(\widehat{\C}, \widehat{\bbeta}) \equiv \argmin_{\C,\,\, \bbeta}  \bbL(\bs\Theta)   + \rho(\C;\lambda), \label{eq:gsfar:obj1}
+\end{align}
+where $g(b'(\bs\Theta)) = \bs\eta(\C, \bbeta, \bO) = \bO + \X\C + \Z\bbeta$. %and $\rho(\C;\lambda) = \lambda^2/2 \|C\|_0$ is the penalty function corresponding to rank constraint. 
+The joint estimation of the unknown parameters $(\C, \bbeta, \bPhi)$ is nontrivial. We solve the problem using a block upper bound  successive minimization (BSUM) approach \citep{razaviyayn2013unified} that cycles between $\C$-step, $\bbeta$-step and $\bPhi$-step to update the parameters $\C$, $\bbeta$ and $\bPhi$, respectively, until convergence.  
+
+\paragraph{$\C$-step:}\label{par:c}
+For fixed  $\bbeta$ and $\bPhi$, we denote $\bs\Theta$ as function of $\C$ by $\bs\Theta(\C)$.   Suppose $\bbL(\bs\Theta(\C), \bPhi)$ is L-Lipschitz continuous gradient for some $s_c$ i.e., $\|\bs\nabla \bbL(\bs\Theta(\check{\C}))  - \bs\nabla \bbL(\bs\Theta(\C))\| \leq s_c \| \check{\C} -\C\|$ for  any conformable $\check{\C}$.  Then
+\begin{align*}
+\bbL(\bs\Theta({\C}),\bPhi) \leq \bbL(\bs\Theta(\check{\C})),\bPhi)  +  \Tr( \bs\nabla \bbL(\bs\Theta(\check{\C}),\bPhi))\trans \{ \C - \check{\C})\} ) +s_c \|\check{\C} - \C\|^2/2,
+\end{align*}
+upper bound the negative log-likelihood function $\bbL(\bs\Theta({\C}),\bPhi)$. The statement holds for any $s_c$ that upper bound $\sup_{\C}\|\bs\nabla^2 \bbL(\bs\Theta({\C}))\|$. Let us denote the current estimate of $\C$ by $\check{\C}$. Using the framework of BSUM algorithm, we update the parameter $\C$ as 
+\begin{align}
+\widebar{\C} \equiv \argmin_{\check{\C}} \bbL(\bs\Theta(\check{\C}),\bPhi))  &+  \Tr( \bs\nabla \bbL(\bs\Theta(\check{\C}),\bPhi))\trans \{ \C - \check{\C})\} ) +s_c \|\check{\C} - \C\|^2/2, \notag \\ &\M{s.t.}\quad \M{rank}(\C) \leq r. 
+\end{align}
+The unique optimal solution is given by 
+$\widebar{\C} =\mathbb{T}^{(r)} ( \check{\C} -  \bs\nabla \bbL(\bs\Theta(\check{\C}),\bPhi)/s_c) $ where  $\mathbb{T}^{(r)}(\bM)$ extracts  $r$ SVD components of matrix $\bM$.
+
+
+%We particularly update the parameter  $\C$ in the rank constrained approach for fixed $\bbeta$ and $\bPhi$; see Section \ref{sec:rcnbfar}. For simplicity, we write $\bs\eta(\C,\bbeta,\bO)$ as $\bs\eta(\C)$.  Suppose the current estimate of $\C$ is denoted by $\check{\C}$.  In terms of the parameter $\C$, let us assume that the $\bbL(\bs\Theta)$ is  L-Lipschitz continuous gradient for some $s_c$, i.e., 
+%$
+%\|\bs\nabla \bbL(\bs\Theta(\check{\C}))  - \bs\nabla \bbL(\bs\Theta(\C))\| \leq s_c \| \check{\C} -\C\|
+%$ for $\check{\C}$, then
+%\begin{align*}
+%\bbL(\bs\Theta({\C})) \leq \bbL(\bs\Theta(\check{\C})))  +  \Tr( \bs\nabla \bbL(\bs\Theta(\check{\C})))\trans \{ \C - \check{\C})\} ) +s_c \|\check{\C} - \C\|^2/2. 
+%\end{align*}
+%The statement holds for any $s_c$ that upper bound $\sup_{\C}\|\bs\nabla^2 \bbL(\bs\Theta({\C}))\|$. Using the framework of block successive upper bound minimization, we update the parameter $\C$ by solving 
+%\begin{align}
+%\what{\C} \equiv \argmin_{\check{\C}} \bbL(\bs\Theta(\check{\C})))  &+  \Tr( \bs\nabla \bbL(\bs\Theta(\check{\C})))\trans \{ \C - \check{\C})\} ) +s_c \|\check{\C} - \C\|^2/2, \notag \\ &\M{s.t.}\quad \M{rank}(\C) \leq r. 
+%\end{align}
+%The unique optimal solution is given by 
+%$\what{\C} =\mathbb{T}^{(r)} ( \check{\C} -  \bs\nabla \bbL(\bs\Theta(\check{\C}))/s_c) $ where  $\mathbb{T}^{(r)}(\bM)$ extracts  $r$ SVD components of matrix $\bM$.
+
+
+
+
+\paragraph{$\bbeta$-step:}\label{par:beta}
+For fixed  $\C$ and $\bPhi$, we denote $\bs\Theta$ as function of $\bbeta$ as $\bs\Theta(\bbeta))$. 
+Let us assume that the $\bbL(\bs\Theta(\bbeta),\bPhi)$ is  L-Lipschitz continuous gradient for some $s_b$. Following the $\C$-step, the optimization problem to update the current parameter $\check{\bbeta}$ in the BSUM framework is given by 
+\begin{align}
+\widebar{\bbeta} \equiv \argmin_{\bbeta} \bbL(\bs\Theta(\check{\bbeta}),\bPhi)  &+  \bs\nabla \bbL(\bs\Theta(\check{\bbeta}),\bPhi)\trans \{ \bbeta - \check{\bbeta})\}  +\frac{s_b}{2} \|\check{\bbeta} - \bbeta\|^2,
+\end{align}
+resulting in $\widebar{\bbeta}  = \check{\bbeta} - \bs\nabla \bbL(\bs\Theta(\check{\bbeta}),\bPhi)/s_b$. 
+
+
+\paragraph{$\bPhi$-step:}\label{par:phi}
+For fixed $\C$ and $\bbeta$, we update $\bPhi$ by minimizing the negative log-likelihood function with respect to $\bPhi$, which can be obtained by a standard algorithm such as Newton-Raphson \citep{citer2019}; see Section \ref{par:nrphi} of the SM for more details. 
+
+
+%We have relegated the details of the update rule for parameter estimation to Section \ref{subsec:updaterule} in the Supplementary Materials.   
+We have relegated the details of the  computation of \{$s_c,s_b$\} to Section \ref{par:comp_scale} in the Supplementary Materials.   
+For convenience, let us denote the problem by $\M{NBRRR}(\C,\bbeta,\bPhi; \Y, \Z, \X,\bO,r)$. We have summarized the suggested procedure in  Algorithm \ref{alg:nbfarr}. 
+%{\cb computationally fast procedure }
+
+
+\begin{algorithm}[!]
+	\caption{$\M{NBRRR}(\C,\bbeta,\bPhi; \W, \Z,\X,\bO,r)$}
+	\begin{algorithmic}\label{alg:nbfarr}
+	\STATE Given: $\X, \Y, \Z, \bO$ and desirable rank $r\geq 1$.
+	\STATE Initialize: $\C^{(0)} = \0$, $\bbeta^{(0)}$, $\bPhi^{(0)}$, $t \gets 0$. 
+\STATE Set $s_b= \max_{1\leq j \leq q}  \|\Z\trans\M{diag}(\Y_{.j}+1)\Z \|/2$, $s_c = \max_{1\leq j \leq q}  \|\X\trans\M{diag}(\Y_{.j}+1)\X \|/2$ 
+		\REPEAT 
+		\vspace{0.1cm}
+		\STATE (1) $\bC$-step: $\C^{(t+1)} = \mathbb{T}^{(r)} (\C^{(t)} -  \bs\nabla \bbL(\bs\Theta(\C^{(t)} ),\bPhi^{(t)} )/s_c )$ where $g(b'(\bs\Theta(\C^{(t)}))) = \bs\eta(\C^{(t)},\bbeta^{(t)}, \bO)$, and $\mathbb{T}^{(r)}(\bM)$ extracts  $r$ SVD components of matrix $\bM$. 
+		\vspace{0.1cm}
+		\STATE (2) $\bbeta$-step:
+		$\bbeta^{(t+1)} =  \bbeta^{(t)}  - \bs\nabla \bbL(\bs\Theta(\bbeta^{(t)} ), \bPhi^{(t)} )/s_b$ where $g(b'(\bs\Theta(\bbeta^{(t)}))) = \bs\eta(\C^{(t+1)},\bbeta^{(t)}, \bO)$. \\
+		\vspace{0.1cm}
+		\STATE (3) $\bPhi$-step: $\bPhi^{(t+1)} = \arg\min_{\bPhi} \bbL(\bs\Theta^{(t+1)},\bPhi)$ where $g(b'(\bs\Theta^{(t+1)}))= \bs\eta(\bO, \C^{(t+1)},\bbeta^{(t+1)})$; see paragraph \ref{par:nrphi}  of the SM. 
+		\vspace{0.2cm}
+		\STATE $t\gets t+1$.
+		\UNTIL{convergence, \\
+			\quad e.g., $\|[\C^{(t+1)} \,\,\bbeta^{(t+1)}] - [\C^{(t)} \,\,\bbeta^{(t)}]\|_F/ \|[\C^{(t)} \,\,\bbeta^{(t)}]\|_F \leq \epsilon$ with $\epsilon = 10^{-6}$.}
+		\RETURN{$\widehat{\C}$,  $\widehat{\bbeta}$, $\widehat{\bPhi}$.}
+	\end{algorithmic}
+\end{algorithm}
+
+
+%After solving the $\M{G-INIT}$ problem using Algorithm \ref{alg:semrrr}, we denote the parameter estimates by $\{\widetilde{\C}$,  $\widetilde{\bbeta}$, $\widetilde{\Phi} \}$. It is then trivial to retrieve the specific SVD decomposition of the coefficient matrix $\widetilde{\C}$ satisfying the orthogonality constraint $\widetilde{\U}\trans\X\trans\X\widetilde{\U}/n = \1$ and $\widetilde{\V}\trans\widetilde{\V} = \1$, where 
+%\begin{align}
+%\widetilde{\U} = [\tilde{\u}_1, \ldots, \tilde{\u}_r] , \,\,\,	\widetilde{\V} = [\tilde{\v}_1, \ldots,\tilde{\v}_r], \,\,\,
+%\widetilde{\D} = \M{diag}[\tilde{d}_1, \ldots, \tilde{d}_r], \label{eq:initval}
+%\end{align}
+%with $\widetilde{\C}_i = \tilde{d}_i\tilde{\u}_i \tilde{\v}_i\trans$. Thus, the $\M{G-INIT}(\C,\bbeta,\Phi; \Y, \X,\bO,r)$ problem outputs $\{\widetilde{\D}, \widetilde{\U},\widetilde{\V},\widetilde{\bbeta},\widetilde{\Phi} \}$. 
+%
+%In summary, we solve $\M{G-INIT}(\C,\bbeta,\Phi; \Y, \X,\bO^{(k)},1)$ to initialize and construct weights in any $k$th step of the sequential approach \textsf{GOFAR(S)}. For the parallel approach \textsf{GOFAR(P)}, we simply solve $\M{G-INIT}(\C,\bbeta,\Phi; \Y, \X,\bO,r)$  to obtain an  initial estimate of the parameters that are used for  specifying the  offset terms and constructing weights.
+\newpage
+\subsection{NBFAR}\label{sec:snbfar}
+\subsubsection{Sequential approach}\label{sec:snbfar_seq}
+Motivated by \citet{mishra2017sequential}, we propose to sequentially extract the unit-rank components of $\C$, i.e., $(d_k,\u_k,\v_k)$, for $k=1,\ldots, r$. For any $k$, let us denote $\C_k = d_k\u_k\v_k\trans$.  Given an estimate of the unit-rank components $\what{\C}_i$ for $i = 1,\ldots,k-1$,   the optimization problem to extract the $k$th component is given by 
+\begin{align}
+(\hat{d}_k, \what{\u}_k, \what{\v}_k, \what{\bbeta},\what{\bPhi}) & \equiv  \argmin_{\u,\d,\v, \bbeta, \bPhi}\,\,\,  \bbL(\bs\Theta,\bPhi) +  \rho(\C; \lambda),\label{eq:prockk} \\ &\M{s.t.} \quad \C= d\u\v\trans, \, \u\trans\X\trans\X\u/n = \v\trans\v = 1, \bs\Theta = \bs\Theta(\C, \bbeta, \bO^{(k)} ), \notag %\qquad \M{rank}(\C)\leq r %###F(\C,\bbeta,\bPhi)\equiv ##
+\end{align}
+where $\rho(\C;\lambda)$ is a sparsity-inducing penalty function with tuning parameter $\lambda$, and  $\bO^{(k)} = \bO+ \X\sum_{i=2}^k\what{\C}_{i-1}$ with $\bO^{(1)} = \bO$ (the original offset matrix). We refer the general problem \eqref{eq:prockk} as negative binomial co-sparse unit-rank estimation, NB-CURE$(\C,\bbeta,\bPhi; \Y, \X, \Z, \bO^{(k)},  \rho)$. Denote the estimate of the   unit-rank component of $\C$ as $\what{\C}_k = \what{d}_k\what{\u}_k\what{\v}_k\trans$.  We remark that the low-dimensional parameters $\bbeta$ and $\bPhi$ are re-estimated at the intermediate steps, and their final estimates are obtained from the last step.
+
+
+We use the elastic net penalty and its adaptive version \citep{zou2005,zou2009adaptive,mishra2017sequential}, i.e., for the $k$th step, 
+\begin{align}
+\rho(\C;\lambda) = \rho(\C;\W,\lambda,\alpha)& =\alpha\lambda\|\W\circ\C\|_1 + (1-\alpha)\lambda\|\C\|_F^2. \label{sec2:eq:enet} %\notag\\
+%& = \alpha\lambda \sum_{i=1}^{p}\sum_{j=1}^{q}w_{ij1}|c_{ij}| + (1-\alpha)\lambda \sum_{i=1}^{p}\sum_{j=1}^{q}c_{ij}^2.
+\end{align}
+Here $\|\cdot\|_1$ denotes the $\ell_1$ norm, the operator ``$\circ$'' stands for the Hadamard product, $\W=[w_{ij}]_{p\times q}$ is a pre-specified weighting matrix, $\lambda$ is a tuning parameter controlling the overall amount of regularization, and $\alpha \in (0,1)$ controls the relative weights between the two penalty terms.  {%\color{red}  
+Several other penalties, such as the lasso $(\alpha = 1, \gamma = 0)$, the adaptive lasso $(\alpha = 1,  \gamma > 0)$, and the elastic net $(0 < \alpha < 1,\, \gamma = 0)$, are its special cases. }
+In the $k$th step of NBFAR, we let $\W_k = |\widetilde{\C}_k|^{-\gamma}$, where $\gamma =1$ and $\widetilde{\C}_k= \widetilde{d}_k\widetilde{\bu}_k\widetilde{\bv}_k\trans$ is an initial estimate of $\C_k$. As such, $w_{ijk} = w_k^{(d)} w_{ik}^{(u)} w_{jk}^{(v)}$, with
+\begin{align}
+w_k^{(d)} = |\widetilde{d}_k|^{-\gamma},
+\bw_k^{(u)} = [w_{1k}^{(u)},..., w_{pk}^{(u)}]\trans= |\widetilde{\bu}_k|^{-\gamma},
+\bw_k^{(v)} = [w_{1k}^{(v)},..., w_{qk}^{(v)}]\trans= |\widetilde{\bv}_k|^{-\gamma}. \label{sec2:weights}
+\end{align}
+
+
+
+
+%We discuss the formulation of $\rho(\C;\lambda)$ in Section xxx and the selection of tuning parameter xxx in Section  xxx. 
+To streamline the presentation, for now let us assume that we are able to solve NB-CURE and select the tuning parameter $\lambda$ suitably. 
+In each step, through the construction of the offset term, the regression effects from the previous steps are adjusted or ``deflated'' in order to enable NB-CURE  to target  a new unit-rank component.  The procedure terminates after a pre-specified number of steps or when $\what{d}_k$ is estimated to be zero. 
+
+
+
+\subsubsection{Computation}\label{sec:snbfar_comp}
+Compared to lasso, a small amount of ridge penalty in the elastic net allows correlated predictors to be in or out of the model together, thereby improving the convexity of the problem and enhancing the stability of optimization \citep{zou2005,mishra2017sequential}; in our work, we fix $\alpha=0.95$ and write $\rho(\C;\W,\lambda,\alpha) = \rho(\C;\W,\lambda)$ for simplicity. Now we express the general form of  $\mbox{NB-CURE}(\C,\bbeta,\bPhi; \Y, \Z, \X,\bO,\rho)$ as
+\begin{align}
+(\hat{d}, \what{\u}, \what{\v}, \what{\bbeta},\what{\bPhi}) & \equiv \argmin_{\u,\d,\v, \bbeta, \bPhi}\,\,\,    \Big\{ F_{\lambda}(d,\u,\v,\bbeta,\bPhi) = \bbL(\bs\Theta,\bPhi) +  \rho(\C;\W, \lambda) \Big\},\label{eq:gcure:objT} \\ &\M{s.t.} \quad \C= d\u\v\trans, \, \u\trans\X\trans\X\u/n = \v\trans\v = 1, \bs\Theta = \bs\Theta(\C, \bbeta, \bO ), \notag %\qquad \M{rank}(\C)\leq r %###F(\C,\bbeta,\bPhi)\equiv ##
+\end{align}
+where $\W = w^{(d)} \w^{(u)} \w^{(v)}\trans$. 
+Following the estimation procedure of NBRRR model, we solve the problem using tthhe framework of BSUM approach \citep{razaviyayn2013unified} that cycles between $\u$-step, $\v$-step, $\bbeta$-step and $\bPhi$-step to update the parameters in block of  $(\u,d)$, $(\v,d)$,  $\bbeta$ and $\bPhi$, respectively, until convergence.  
+
+%The resulting method is termed  generalized co-sparse factor regression via sequential extraction (GOFAR(S)).
+%Algorithm \ref{sec2:alg:1} and Figure \ref{fig:gofarsp}  summarize the computation procedure. 
+%In step $k=1$, we conduct the following negative binomial co-sparse unit-rank estimation (NB-CURE),
+%\begin{align}
+%(\hat{d}_1, \what{\u}_1, \what{\v}_1, \what{\bbeta},\what{\bPhi}) & \equiv \argmin_{\u,\d,\v, \bbeta, \bPhi}\,\,\,  \bbL(\bs\Theta,\bPhi) +  \rho(\C;\lambda),\label{eq:prock1} \\ &\M{s.t.} \quad \C= d\u\v\trans, \, \u\trans\X\trans\X\u/n = \v\trans\v = 1, \bs\Theta = \bs\Theta(\C, \bbeta, \bO^{(1)}), \notag %\qquad \M{rank}(\C)\leq r %###F(\C,\bbeta,\bPhi)\equiv ##
+%\end{align}
+%where $\bO^{(1)} = \bO$ (the original offset matrix), and $\rho(\C;\lambda)$ is a sparsity-inducing penalty function with tuning parameter $\lambda$. 
+%We discuss the formulation of $\rho(\C;\lambda)$ in Section xxx and the selection of tuning parameter xxx in Section  xxx. To streamline the presentation, for now let us assume that we are able to solve NB-CURE and select the tuning parameter $\lambda$ suitably. Denote the produced unit-rank solution of $\C$ as $\what{\C}_1 = \what{d}_1\what{\u}_1\what{\v}_1\trans$.
+
+%In the subsequent steps, i.e., for $k=2,\ldots r$, we repeat NB-CURE each time with an updated offset term,
+%\begin{align}
+%	\bO^{(k)} = \bO+ \X\sum_{i=2}^k\what{\C}_{i-1}. \label{eq:gcure:ofset}	
+%\end{align}
+%In general, the NB-CURE problem in the $k$th step, for $k=1,\ldots, r$, can be expressed as 
+%\begin{align}
+%(\hat{d}_k, \what{\u}_k, \what{\v}_k, \what{\bbeta},\what{\bPhi}) & \equiv  \argmin_{\u,\d,\v, \bbeta, \bPhi}\,\,\,  \bbL(\bs\Theta,\bPhi) +  \rho(\C; \lambda),\label{eq:prockk} \\ &\M{s.t.} \quad \C= d\u\v\trans, \, \u\trans\X\trans\X\u/n = \v\trans\v = 1, \bs\Theta = \bs\Theta(\C, \bbeta, \bO^{(k)} ). \notag %\qquad \M{rank}(\C)\leq r %###F(\C,\bbeta,\bPhi)\equiv ##
+%\end{align}
+%We remark that the low-dimensional parameters $\bbeta$ and $\bPhi$ are re-estimated at the intermediate steps, and their final estimates are obtained from the last step. %estimates for not used, and their final estimates are produced from the last step.
+
+
+%The rationale of the proposed procedure can be traced back to the power method for computing SVD. 
+%In each step, through the construction of the offset term, the regression effects from the previous steps are adjusted or ``deflated'' in order to enable NB-CURE  to target  a new unit-rank component. We solve the problem using a block successive minimization approach \citep{razaviyayn2013unified} that cycles between $\u$-step, $\v$-step, $\bbeta$-step and $\bPhi$-step to update the parameters in block of  $(\u,d)$, $(\v,d)$,  $\bbeta$ and $\bPhi$, respectively, until convergence.  We have relegated the details of the update rule for parameter estimation to Section \ref{subsec:updaterule}.   The procedure terminates after a pre-specified number of steps or when $\what{d}_k$ is estimated to be zero. We have summarized the suggested procedure in  Algorithm xxx.
+
+
+
+%%\section{Computation}\label{sec:compute}
+%%\subsection{Penalty function}\label{subsec:comp_pen}
+%%
+%%We denote the generic NB-CURE problem as 
+%%$$
+%%\mbox{NB-CURE}(\C,\bbeta,\bPhi; \Y, \X, \Z, \bO, \rho).
+%%$$
+%%First, we discuss the choice of the penalty function. In this work we use the elastic net penalty and its adaptive version \citep{zou2005,zou2009adaptive,mishra2017sequential}, i.e., for the $k$th step, 
+%%\begin{align}
+%%\rho(\C;\lambda) = \rho(\C;\W,\lambda,\alpha)& =\alpha\lambda\|\W\circ\C\|_1 + (1-\alpha)\lambda\|\C\|_F^2. \label{sec2:eq:enet} %\notag\\
+%%%& = \alpha\lambda \sum_{i=1}^{p}\sum_{j=1}^{q}w_{ij1}|c_{ij}| + (1-\alpha)\lambda \sum_{i=1}^{p}\sum_{j=1}^{q}c_{ij}^2.
+%%\end{align}
+%%Here $\|\cdot\|_1$ denotes the $\ell_1$ norm, the operator ``$\circ$'' stands for the Hadamard product, $\W=[w_{ij}]_{p\times q}$ is a pre-specified weighting matrix, $\lambda$ is a tuning parameter controlling the overall amount of regularization, and $\alpha \in (0,1)$ controls the relative weights between the two penalty terms.  {%\color{red}  
+%%Several other penalties, such as the lasso $(\alpha = 1, \gamma = 0)$, the adaptive lasso $(\alpha = 1,  \gamma > 0)$, and the elastic net $(0 < \alpha < 1,\, \gamma = 0)$, are its special cases. }
+%%
+%%
+%%In the $k$th step of NBFAR, we let $\W_k = |\widetilde{\C}_k|^{-\gamma}$, where $\gamma =1$ and $\widetilde{\C}_k= \widetilde{d}_k\widetilde{\bu}_k\widetilde{\bv}_k\trans$ is an initial estimate of $\C_k$. As such, $w_{ijk} = w_k^{(d)} w_{ik}^{(u)} w_{jk}^{(v)}$, with
+%%\begin{align}
+%%w_k^{(d)} = |\widetilde{d}_k|^{-\gamma},
+%%\bw_k^{(u)} = [w_{1k}^{(u)},..., w_{pk}^{(u)}]\trans= |\widetilde{\bu}_k|^{-\gamma},
+%%\bw_k^{(v)} = [w_{1k}^{(v)},..., w_{qk}^{(v)}]\trans= |\widetilde{\bv}_k|^{-\gamma}. \label{sec2:weights}
+%%\end{align}
+
+
+%Compared to lasso, one advantage of elastic net is that a small amount of ridge penalty can improve the convexity of the problem and can enhance the stability of optimization \citep{zou2005,mishra2017sequential};
+%%Compared to lasso, a small amount of ridge penalty in the elastic net allows correlated predictors to be in or out of the model together, thereby improving the convexity of the problem and enhancing the stability of optimization \citep{zou2005,mishra2017sequential}; in our work, we fix $\alpha=0.95$ and write $\rho(\C;\W,\lambda,\alpha) = \rho(\C;\W,\lambda)$ for simplicity. Now we express $\mbox{NB-CURE}(\C,\bbeta,\bPhi; \Y, \Z, \X,\bO,\rho)$ as
+%%\begin{align}
+%%(\hat{d}, \what{\u}, \what{\v}, \what{\bbeta},\what{\bPhi}) & \equiv \argmin_{\u,\d,\v, \bbeta, \bPhi}\,\,\,    \Big\{ F_{\lambda}(d,\u,\v,\bbeta,\bPhi) = \bbL(\bs\Theta,\bPhi) +  \rho(\C;\W, \lambda) \Big\},\label{eq:gcure:objT} \\ &\M{s.t.} \quad \C= d\u\v\trans, \, \u\trans\X\trans\X\u/n = \v\trans\v = 1, \bs\Theta = \bs\Theta(\C, \bbeta, \bO ). \notag %\qquad \M{rank}(\C)\leq r %###F(\C,\bbeta,\bPhi)\equiv ##
+%%\end{align}
+
+%\subsection{Update rule}\label{subsec:updaterule}
+
+
+%\paragraph{$\C$-step:}\label{par:c}
+%We particularly update the parameter  $\C$ in the rank constrained approach for fixed $\bbeta$ and $\bPhi$; see Section \ref{sec:rcnbfar}. For simplicity, we write $\bs\eta(\C,\bbeta,\bO)$ as $\bs\eta(\C)$.  Suppose the current estimate of $\C$ is denoted by $\check{\C}$.  In terms of the parameter $\C$, let us assume that the $\bbL(\bs\Theta)$ is  L-Lipschitz continuous gradient for some $s_c$, i.e., 
+%$
+%\|\bs\nabla \bbL(\bs\Theta(\check{\C}))  - \bs\nabla \bbL(\bs\Theta(\C))\| \leq s_c \| \check{\C} -\C\|
+%$ for $\check{\C}$, then
+%\begin{align*}
+%\bbL(\bs\Theta({\C})) \leq \bbL(\bs\Theta(\check{\C})))  +  \Tr( \bs\nabla \bbL(\bs\Theta(\check{\C})))\trans \{ \C - \check{\C})\} ) +s_c \|\check{\C} - \C\|^2/2. 
+%\end{align*}
+%The statement holds for any $s_c$ that upper bound $\sup_{\C}\|\bs\nabla^2 \bbL(\bs\Theta({\C}))\|$. Using the framework of block successive upper bound minimization, we update the parameter $\C$ by solving 
+%\begin{align}
+%\what{\C} \equiv \argmin_{\check{\C}} \bbL(\bs\Theta(\check{\C})))  &+  \Tr( \bs\nabla \bbL(\bs\Theta(\check{\C})))\trans \{ \C - \check{\C})\} ) +s_c \|\check{\C} - \C\|^2/2, \notag \\ &\M{s.t.}\quad \M{rank}(\C) \leq r. 
+%\end{align}
+%The unique optimal solution is given by 
+%$\what{\C} =\mathbb{T}^{(r)} ( \check{\C} -  \bs\nabla \bbL(\bs\Theta(\check{\C}))/s_c) $ where  $\mathbb{T}^{(r)}(\bM)$ extracts  $r$ SVD components of matrix $\bM$.
+
+
+\paragraph{$\u$-step}\label{par:u}
+For fixed $\{\v, \bbeta, \bPhi\}$ with $\v\trans\v = 1$, we rewrite the objective function \eqref{eq:gcure:objT} in terms of the product variable $\check{\u} = d\u$  to avoid the quadratic constraints. For simplicity, we write $\bs\Theta$ as function of $\check{\u}$ as $\bs\Theta(\check{\u}\v\trans)$.  In terms of $\check{\u}$, let us assume that the $\bbL(\bs\Theta(\check{\u}\v\trans), \bPhi)$ is  L-Lipschitz continuous gradient for some $s_u$. Following the $\C$-step in Section \ref{sec:rcnbfar},  the optimization problem to update  $\check{\u}$ is given by 
+\begin{align*}
+\what{\u} \equiv \argmin_{\a} \bbL(\bs\Theta(\check{\u}\v\trans), \bPhi)  &+  \bs\nabla \bbL(\bs\Theta(\check{\u}\v\trans), \bPhi))\trans ( \a - \check{\u})  +\frac{s_u}{2} \|\check{\u} - \a\|^2 + \rho(\a\v\trans;\W,\lambda). 
+\end{align*}
+%The statement holds for any $s_u$ that upper bounds $\sup_{\a}\|\bs\nabla^2 \bbL(\bs\Theta({\a}))\|$. 
+Following \citet{zou2005}, the unique optimal solution 
+is given by
+\begin{align}
+\what{\u} = \frac{\mathcal{\S}(\check{\u} -  \bs\nabla \bbL(\bs\Theta(\check{\u}\v\trans),\bPhi)/s_u; 
+\alpha \lambda\v\trans\w^{(v)} w^{(d)} \w^{(u)}/s_u )}{1+2\lambda(1-\alpha)\|\v\|_2^2/s_u}, \label{eq:ustepupdate}
+\end{align}
+where  $\mathcal{\S}(\t;\tilde{\lambda}) = \M{sign}(\t)(|\t|-\tilde{\lambda})_+$ is the elementwise soft-thresholding operator on any $\t \in \mathbb{R}^p$. Now, using the equality constraint, i.e., $\|\X\u\|_2 = \sqrt{n}$, we can retrieve the individual estimates of $(d,\u)$ from $\what{\u}$.
+
+
+
+\paragraph{$\v$-step}\label{par:v}
+For fixed $\{\u, \bbeta, \bPhi\}$, we write 
+As in the $\u$-step, we rewrite the objective function \eqref{eq:gcure:objT} in terms of the product $\check{\v} = d\v$. For simplicity, we write $\bs\Theta(\C,\bbeta,\bO)$ as $\bs\Theta(\u\check{\v}\trans)$.  Following the $\u$-step, the optimization problem to update $\check{\v}$ is given by 
+\begin{align}
+\what{\v} \equiv \argmin_{b} \bbL(\bs\Theta(\u\check{\v}\trans),\bPhi)  &+  \bs\nabla \bbL(\bs\Theta(\u\check{\v}\trans),\bPhi)\trans ( \b - \check{\v}) +\frac{s_v}{2} \|\check{\v} - \b\|^2 + \rho(\u\b\trans;\W,\lambda),
+\end{align}
+where  $\bbL(\bs\Theta(\u\check{\v}\trans),\bPhi)$ is  L-Lipschitz continuous gradient for some $s_v$. 
+%In terms of the parameter $\check{\v}$, let us assume that the $\bbL(\bs\Theta(\u\check{\v}\trans),\bPhi)$ is  L-Lipschitz continuous gradient for some $s_v$. The statement holds for any $s_v$ that upper bound $\sup_{\b}\|\bs\nabla^2 \bbL(\bs\Theta({\b}))\|$.  
+Following the $\u$-step, the unique optimal solution is given by 
+\begin{align}
+\what{\v} = \frac{ \mathcal{\S}(\check{\v} - \bs\nabla \bbL(\bs\Theta(\u\check{\v}\trans),\bPhi) /s_v; \alpha \lambda\u\trans\w^{(u)} w^{(d)} \w^{(v)}/s_v } {1+2\lambda(1-\alpha)\|\u\|_2^2/s_v}. \label{eq:vupdatestep}
+\end{align}
+Again, we retrieve the estimates of $(d,\v)$ from the equality constraint $\v\trans\v = 1$. 
+
+
+\paragraph{$\bbeta$-step:}
+For fixed  $\C = d\u\v\trans$ and $\bPhi$, we denote $\bs\Theta$ as function of $\bbeta$ as $\bs\Theta(\bbeta))$.  Following $\bbeta$-step of NBRRR in Section \ref{sec:rcnbfar}, we update the current estimate $\check{\bbeta}$ by $\what{\bbeta}  = \check{\bbeta} - \bs\nabla \bbL(\bs\Theta(\check{\bbeta}),\bPhi)/s_b$. 
+
+
+
+
+
+
+
+%%\paragraph{$\bbeta$-step:}\label{par:beta}
+%%For fixed  $\C$ and $\bPhi$, denote $\bs\Theta(\bbeta) = \bs\Theta(\C,\bbeta,\bO)$. 
+%% In terms of the parameter $\bbeta$, let us assume that the $\bbL(\bs\Theta)$ is  L-Lipschitz continuous gradient for some $s_b$. Following the $\C$-step, the optimization problem to update the current parameter $\check{\bbeta}$ in the BSUM framework is given by 
+%%\begin{align}
+%%\what{\bbeta} \equiv \argmin_{\bbeta} \bbL(\bs\Theta(\check{\bbeta})))  &+  \bs\nabla \bbL(\bs\Theta(\check{\bbeta})))\trans \{ \bbeta - \check{\bbeta})\}  +\frac{s_b}{2} \|\check{\bbeta} - \bbeta\|^2,
+%%\end{align}
+%%resulting in $\what{\bbeta}  = \check{\bbeta} - \bs\nabla \bbL(\bs\Theta(\check{\bbeta})))/s_b$. 
+
+
+\paragraph{$\bPhi$-step:}\label{par:phi}
+For fixed $\C= d\u\v\trans$ and $\bbeta$, we update $\bPhi$ by minimizing the negative log-likelihood function with respect to $\bPhi$, which can be obtained by a standard algorithm such as Newton-Raphson \citep{citer2019}; see Section \ref{par:nrphi} of the SM for more details. 
+
+
+
+
+We have relegated the details of the computation of ($s_u$, $s_v$, $s_b$) and ($\bs\nabla \bbL(\bs\Theta(\check{\u}\v\trans),\bPhi)$, $\bs\nabla \bbL(\bs\Theta(\u\check{\v}\trans),\bPhi)$, $\bs\nabla \bbL(\bs\Theta(\check{\bbeta}),\bPhi)$) to the SM. 
+%We have relegated the details of the update rule for parameter estimation to Section \ref{subsec:updaterule}. 
+We have summarized the computation procedure in Algorithm \ref{sec2:alg:1}. 
+
+
+
+\begin{algorithm}[htp]
+	\caption{Negative Binomial Co-Sparse Factor Regression}
+	\begin{algorithmic}\label{sec2:alg:1}
+          \STATE Initialize: $\bbeta^{(0)}$, $\bPhi^{(0)}$, and set the maximum number of steps $r \geq 1$, e.g., an upper bound of $\M{rank}(\C)$.
+\STATE Set $s_b= \max_{1\leq j \leq q}  \|\Z\trans\M{diag}(\Y_{.j}+1)\Z \|/2$. 
+		\FOR{$k \gets 1 \, \M{ to }\, r$}
+		\STATE (1) Update offset: $\bO^{(k)} = \bO+ \X\sum_{i=2}^k\what{\C}_{i-1}$
+		\STATE (2) Initialize: $\widetilde{\C},\widetilde{\bbeta},\widetilde{\bPhi} = \M{NBRRR}(\C,\bbeta,\bPhi; \Y, \Z, \X,\bO^{(k)},1)$ with $\widetilde{\C} = \widetilde{d} \widetilde{\u} \widetilde{\v}\trans$. 
+		\STATE (3) Set $\u^{(0)} = \widetilde{\u}$, $\v^{(0)} = \widetilde{\v}$, $d^{(0)} = \widetilde{d}$, $\bbeta^{(0)} = \widetilde{\bbeta}$, $\bPhi^{(0)} =  \widetilde{\bPhi}$ and $\W$ using  \eqref{sec2:weights}. 
+		%\STATE (4) Construct weight $\W$ using  Equation \eqref{sec2:weights}. 
+		\STATE (4) Solve NB-CURE$(\C,\bbeta,\bPhi; \Y, \X, \Z, \bO^{(k)},  \rho)$ such that $\C = d\u\v\trans$. 
+		\REPEAT 
+\STATE $$s_u  = \|\X\trans\X + \sum_{i = 1}^n\x_i \Big( \sum_{k = 1}^q y_{ik} v_k^{(t)}^2\Big) \x_i\trans\|/2,  \,\,
+s_v =  {\max_{1\leq j \leq q}\u\trans\X\trans \M{diag}(\Y_{.j} + 1) \X\u \over 2}$$
+%\vspace{0.1cm}
+\STATE (I) $\u$-step:   Set $\check{\u} = d^{(t)}\u^{(t)}$ and $\v =\v^{(t)}$. Update $\check{\u}^{(t+1)}$ using  \eqref{eq:ustepupdate}. 
+ Recover block variable  ($\tilde{d}^{(t+1)},\u^{(t+1)}$) using equality constraint in \eqref{eq:gcure:objT}.
+\vspace{0.1cm}
+\STATE (II) $\v$-step:  Set $\check{\v} = \tilde{d}^{(t+1)}\v^{(t)}$ and $\u =\u^{(t+1)}$. Update $\check{\v}^{(t+1)}$ using  \eqref{eq:vupdatestep}.
+Recover block variable  ($d^{(t+1)},\v^{(t+1)}$) using equality constraint in \eqref{eq:gcure:objT}.
+\vspace{0.1cm}
+\STATE (III) $\bbeta$-step: $\bbeta^{(t+1)}  = \bbeta^{(t)} - \frac{1}{s_b} \bs\nabla \bbL(\bs\Theta(\C^{(t+1)}, \bbeta^{(t)}),\bPhi)$ where $\C^{(t+1)} = d^{(t+1)}\u^{(t+1)}\v^{(t+1)}\trans$. 
+\vspace{0.1cm}
+\STATE (IV) $\bPhi$-step:
+$\bPhi^{(t+1)} = \arg\min_{\bPhi} \bbL( \bs\Theta(\C^{(t+1)}, \bbeta^{(t+1)}),\bPhi)$. % using Newton-Raphson. 
+\vspace{0.1cm}
+\STATE $t\gets t+1$.
+\UNTIL {convergence, e.g., the relative $\ell_2$ change in parameters is less than $\epsilon = 10^{-6}$.}\\
+\STATE (6) $\what{\u}_k = \widehat{\u}$, $\what{d}_k = \widehat{d}$, $\what{\v}_k = \widehat{\v}$,  $\what{\bbeta} = \widehat{\bbeta}$, $\what{\bPhi} = \widehat{\bPhi}$ and $\what{\C}_k  =  \what{d}_k\what{\u}_k\what{\v}_k\trans$.
+%		\STATE (2) G-CURE with tuning (see Section \ref{sec2:computation}):\\
+%                       $(\what{d}_k,\what{\u}_k,\what{\v}_k,\what{\bbeta},\what{\bPhi})  =  \mbox{G-CURE}(\C,\bbeta,\bPhi; \Y, \X,\bO^{(k)}, \rho)$, and $\what{\C}_k  =  \what{d}_k\what{\u}_k\what{\v}_k\trans$.                
+		\IF{$\what{d}_k=0$} 
+		\STATE{Set $\what{r} = k$; $k \leftarrow r$;} 
+		\ENDIF
+		\ENDFOR
+				\RETURN{$\what{\C} = \sum_{k=1}^{\what{r}} \what{\C}_k$,  $\what{\bbeta}$, $\what{\bPhi}$.}
+	\end{algorithmic}
+\end{algorithm}
+
+%\begin{algorithm}[!h]
+%  \caption{Generalized Co-Sparse Unit-Rank Estimation}
+%%  {\color{red} Aditya, please revise this accordingly.}
+%\begin{algorithmic}\label{alg:spmrrr}
+%\STATE Given: $\X$, $\Y$, $\Z$, $\W$, $\bO$, $\kappa_0$, $\lambda$, $\alpha$.
+%\STATE Initialize $\u^{(0)} = \widetilde{\u}$, $\v^{(0)} = \widetilde{\v}$, $d^{(0)} = \widetilde{d}$, $\bbeta^{(0)} = \widetilde{\bbeta}$, $\bPhi^{(0)} =  \widetilde{\bPhi}$. Set $t\gets0$.
+%\REPEAT
+%\STATE Set $s_u  =  \kappa_0\|\X\|^2/\varphi$, $s_{\beta} = \kappa_0\|\Z\|^2/\varphi$,  $s_v =   n\kappa_0/\varphi$ where $\varphi = \min(\bPhi^{(t)} )$. 
+%\vspace{0.1cm}
+%\STATE (1) $\u$-step:   Set $\check{\u} = d^{(t)}\u^{(t)}$ and $\v =\v^{(t)}$. Update $\check{\u}^{(t+1)}$ using  \eqref{eq:ustepupdate}. 
+% Recover block variable  ($\tilde{d}^{(t+1)},\u^{(t+1)}$) using equality constraint in \eqref{eq:gcure:objT}.
+%\vspace{0.1cm}
+%\STATE (2) $\v$-step:  Set $\check{\v} = \tilde{d}^{(t+1)}\v^{(t)}$ and $\u =\u^{(t+1)}$. Update $\check{\v}^{(t+1)}$ using  \eqref{eq:vupdatestep}.
+%Recover block variable  ($d^{(t+1)},\v^{(t+1)}$) using equality constraint in \eqref{eq:gcure:objT}.
+%\vspace{0.1cm}
+%\STATE (3) $\bbeta$-step: Update $\bbeta^{(t+1)} $ using \eqref{eq:zupdaatestep}.
+%\vspace{0.1cm}
+%\STATE (4) $\bPhi$-step:
+%$\bPhi^{(t+1)} = \arg\max_{\bPhi} \bbL( \bs\Theta(\C^{(t+1)}, \bbeta^{(t+1)}),\bPhi)$. 
+%\vspace{0.1cm}
+%\STATE $t\gets t+1$.
+%\UNTIL {convergence, e.g., the relative $\ell_2$ change in parameters is less than $\epsilon = 10^{-6}$.}\\
+%\RETURN{$\widehat{\u}$, $\widehat{d}$, $\widehat{\v}$,  $\widehat{\bbeta}$, $\widehat{\bPhi}$.}
+%\end{algorithmic}
+%\end{algorithm}
+
+
+
+
+{%\cb
+Algorithm 2 is a block coordinate descent optimization procedure for minimizing the nonsmooth and nonconvex objective functions $F_{\lambda}(d,\u,\v,\bbeta,\bPhi)$.
+%Algorithm \ref{alg:spmrrr} is a  block successive minimization methods to optimize  the nonsmooth and nonconvex objective function $F_{\lambda}(d,\u,\v,\bbeta,\bPhi)$. 
+This type of problem has been studied in, e.g., \citet{gorski2007}, \citet{razaviyayn2013unified} and \citet{mishra2017sequential}. In each of the sub-problems, the algorithm minimizes a \emph{convex} surrogate that majorizes the objective function, which results in a unique and bounded solution when the elastic net penalty is used  \citep{mishra2017sequential}. Thus, using Theorem/Corollary 2(a) of \citet{razaviyayn2013unified}, we can conclude that any limit point of the sequence of solutions generated by the algorithm is a coordinate-wise minimum of the objective function.}
+Algorithm \ref{alg:spmrrr} always converges in our extensive numerical studies. %to a unique and stable limit point.
+%}
+Both of the estimation procedures for GOFAR are implemented, tested, validated, and made  publicly available in a user-friendly R package,  \textsf{gofar}. 
+
+
+%\subsection{Convergence analysis}\label{subsec:conv_analysis}
+\subsection{Tuning}\label{subsec:tuning}
+
+\section{Appendix}\label{sup:sec_optmin}
+\subsection{Partial derivative of $ \bbL(\bs\Theta,\bPhi)$ for fixed $\bPhi$: } 
+For the ease of notation, we write $ \bbL(\bs\Theta,\bPhi)$ as $ \bbL(\bs\Theta)$. 
+Here $\bs\Theta$ is linked to linear predictor $\bs\eta$ as $g(b'(\bs\Theta)) = \bs\eta$ and 
+\begin{align*}
+&\bbL(\bs\Theta)  = - \Tr(\Y\trans \bs\Theta) + \Tr({\J}\trans \bB(\bs\Theta)) + \M{const}, \\
+&\frac{\partial\bbL(\bs\Theta) }{\partial \theta_{ij}} = - y_{ij} + b'(\theta_{ij}) \implies \frac{\partial\bbL(\bs\Theta) }{\partial \eta_{ij}}   = (- y_{ij} + b'(\theta_{ij}) ) \frac{\partial \eta_{ij} }{\partial \theta_{ij}}. 
+\end{align*}
+For $g(x) = \log{x}$, we have  $\frac{\partial \eta_{ij} }{\partial \theta_{ij}} = \frac{\phi_j}{\phi_j + \exp{\eta_{ij}}} $ and implies $\frac{\partial\bbL(\bs\Theta) }{\partial \eta_{ij}} = \phi_j \Big( \frac{-y_{ij} +\exp {\eta_{ij}} }{\phi_j + \exp {\eta_{ij}}} \Big)$. Jointly we represent
+\begin{align*}
+\bs\nabla \bbL(\bs\eta) =  \frac{\partial\bbL(\bs\Theta) }{\partial \bs\eta}  = -\Y\circ \bB^{1}(\bs\eta) +  \bB^{2}(\bs\eta),
+\end{align*} 
+where $ \bB^{1}(\bs\eta)  = [b_1(\eta_{ij})]_{n \times q}$ with $b_1(\eta_{ij}) = \frac{\phi_j}{\phi_j + \exp{\eta_{ij}}}$ and  $ \bB^{2}(\bs\eta)  = [b_2(\eta_{ij})]_{n \times q}$ with $b_2(\eta_{ij}) = \frac{\phi_j \exp{\eta_{ij}}}{\phi_j + \exp{\eta_{ij}}}$. Then, we compute $\frac{\partial\bbL }{\partial \bbeta} = \Z\trans\frac{\partial\bbL }{\partial \bs\eta}$ and $\frac{\partial\bbL }{\partial \C} = \X\trans\frac{\partial\bbL }{\partial \bs\eta}$. For $\C = d\u\v\trans$,   $\frac{\partial\bbL }{\partial \u} = \X\trans\frac{\partial\bbL }{\partial \bs\eta}\v$ and  $\frac{\partial\bbL }{\partial \v} =  \Big(\frac{\partial\bbL }{\partial \bs\eta} \Big)\trans\X\u$.  
+
+
+%\subsection{Computation of the L-Lipschitz continuous gradient constants: }
+\subsection{Computation of $s_c$, $s_b$, $s_u$ and $s_v$ } \label{par:comp_scale}
+For the ease of notation, we write $ \bbL(\bs\Theta,\bPhi)$ as $ \bbL(\bs\Theta)$. 
+We define $s_c$ to be an upper bound on %$\sup_{\C}\|\bs\nabla^2 \bbL(\bs\Theta({\C}))\|$, i.e., 
+\begin{align*}
+\sup_{\C}\|\bs\nabla^2 \bbL(\bs\Theta({\C}))\|  = \max_{1\leq j \leq q} \sup_{\C_{.j}}\|\bs\nabla^2 \bbL(\bs\Theta({\C_{.j}}))\|, 
+\end{align*}
+where $\bs\nabla^2 \bbL(\bs\Theta({\C_{.j}})) = \X\trans \bs\nabla^2 \bbL(\bs\eta_{.j}) \X$. To proceed with the analysis, we simplify and bound   $\bs\nabla^2 \bbL(\eta_{ij}) $ as 
+\begin{align*}
+\bs\nabla^2 \bbL(\eta_{ij}) = (y_{ij} + 1)\frac{\phi_j \exp{\eta_{ij}} }{(\phi_j + \exp{\eta_{ij}})^2} \leq \frac{y_{ij} + 1}{4}. 
+\end{align*}
+This implies $s_c = \max_{1\leq j \leq q}  \|\X\trans\M{diag}(\Y_{.j}+1)\X \|/2$. Similarly, we compute $s_b = \max_{1\leq j \leq q}  \|\Z\trans(\Y_{.j}+1)\Z \|/2$. 
+
+Now, we analyze $\sup_{\a}\|\bs\nabla^2 \bbL(\bs\Theta({\a}))\|$  to compute $s_u$.  To begin with, we have $\frac{\partial\bbL }{\partial \u} = \X\trans\bs\nabla \bbL(\bs\eta)\v = \sum_{i = 1}^n\x_i \sum_{k = 1}^q \bs\nabla \bbL(\eta_{ik})v_k$. This implies $\frac{\partial^2\bbL }{\partial \u\partial \u\trans}  = \sum_{i = 1}^n\x_i \Big( \sum_{k = 1}^q \bs\nabla^2 \bbL(\eta_{ik})v_k^2\Big) \x_i\trans$. Hence,
+\begin{align*}
+s_u = \|\sum_{i = 1}^n\x_i \Big( \sum_{k = 1}^q (y_{ik} + 1) v_k^2\Big) \x_i\trans\|/2 = \|\X\trans\X + \sum_{i = 1}^n\x_i \Big( \sum_{k = 1}^q y_{ik} v_k^2\Big) \x_i\trans\|/2.  
+\end{align*}
+Now, we analyze $\sup_{\b}\|\bs\nabla^2 \bbL(\bs\Theta({\b}))\|$  to compute $s_v$.  To begin with, we have $\frac{\partial\bbL }{\partial \v} =  \Big(\frac{\partial\bbL }{\partial \bs\eta} \Big)\trans\X\u = \sum_{i = 1}^n\x_i\trans \u  \bs\nabla \bbL(\bs\eta_{i.}) $. This implies 
+$$
+\frac{\partial^2\bbL }{\partial \v\partial \v\trans}  = \M{diag}[\u\trans\X\trans \M{diag}(\bs\nabla^2 \bbL(\bs\eta_{.1})) \X\u,\ldots, \u\trans\X\trans \M{diag}(\bs\nabla^2 \bbL(\bs\eta_{.q})) \X\u].  
+$$. Then
+\begin{align*}
+s_v = \max_{1\leq j \leq q}\u\trans\X\trans \M{diag}(\bs\nabla^2 \bbL(\bs\eta_{.j})) \X\u/2 = \max_{1\leq j \leq q}\u\trans\X\trans \M{diag}[\Y_{.j} + 1] \X\u/2 .  
+\end{align*}
+
+
+
+
+\subsection{Newton-Raphson to update  $\bPhi$:}\label{par:nrphi}
+Given $\C$ and $\bbeta$, $\bs\mu = g^{-1}(\bO + \X\C + \Z\bbeta)$ is fixed.  The first and the  second derivative $\bbL(\bs\mu,\bPhi)$ \eqref{eq:negLogLi} for any $j$th dispersion parameter $\phi_j$ is given by 
+%We conveniently represent the negative log-likelihood $\bbL(\bs\mu,\bPhi)$ by $\bbL(\bPhi)$. 
+\begin{align*}
+-\frac{\partial\bbL }{\partial \phi_j}  &= \sum_{i = 1}^n\Bigg[\Big( \sum_{k = 0}^{y_{ij} - 1}\frac{1}{k+\phi_j}\Big) + \frac{\mu_{ij} - y_{ij}}{\mu_{ij} + \phi_j} - \log\Big(1 + \frac{\mu_{ij}}{\phi_j} \Big)\Bigg] \\
+-\frac{\partial^2\bbL }{\partial \phi_j^2}  &= \sum_{i = 1}^n\Bigg[\Big( \sum_{k = 0}^{y_{ij} - 1}\frac{-1}{(k+\phi_j)^2}\Big) + \frac{y_{ij} - \mu_{ij}}{(\mu_{ij} + \phi_j)^2} + \frac{\mu_{ij}}{\phi_j(\phi_j + \mu_{ij})} \Bigg].
+\end{align*}
+Then we update the current estimate $\phi_j$  by $\hat{\phi}_j = \phi_j - \Big(\frac{\partial^2\bbL }{\partial \phi_j^2}\Big)^{-1} \frac{\partial\bbL }{\partial \phi_j} $. 
+
+{\cb Reparameterized model in terms of $\alpha$; n}
+\citep{ismail2007handling}
+\begin{align*}
+p(y_{ij}; \mu_{ij}, \phi_j)  = \M{NB}(y_{ij};  \mu_{ij}^*, \phi_j^*) = {y_{ij} + \phi_j^* -1 \choose y_{ij}}  \frac{{\mu_{ij}^*}^{y_{ij}} {\phi_j^*}^{\phi_j^*} }{(\mu_{ij}^* + \phi_j^*)^{y_{ij} + \phi_j^*} },
+\end{align*}
+
+\begin{align*}
+\bbL &= \sum_{i = 1}^n\Bigg[\Big( \sum_{k = 0}^{y_{ij} - 1}\log \frac{k\alpha_j + 1}{\alpha_j}\Big) + y_{ij}\log{\alpha_j} - \Big(y_{ij} + \frac{1}{\alpha_j} \Big) \log(1 + \mu_{ij} \alpha_j )\Bigg] \\
+\frac{\partial\bbL }{\partial \alpha_j}  &= \sum_{i = 1}^n\Bigg[\Big( \sum_{k = 0}^{y_{ij} - 1}\frac{k}{k\alpha_j + 1} \Big) -\frac{\mu_{ij}}{\alpha_j} \frac{y_{ij}\alpha_j + 1}{\mu_{ij}\alpha_j + 1} +\frac{1}{\alpha_j^2} \log\Big(1 + \mu_{ij}\alpha_j \Big)\Bigg] \\
+\frac{\partial^2\bbL }{\partial \alpha_j^2}  &= \sum_{i = 1}^n\Bigg[\Big( \sum_{k = 0}^{y_{ij} - 1} \frac{-k^2}{(k\alpha_j + 1)^2} \Big)  + \frac{\mu_{ij}}{\alpha_j^2(1+\alpha_j\mu_{ij})} -\frac{2}{\alpha_j^3} \log\Big(1 + \mu_{ij}\alpha_j \Big) \notag  \\
+&-\frac{\mu_{ij}y_{ij}}{\alpha_j(\mu_{ij}\alpha_j + 1)} + \frac{\mu_{ij}(y_{ij}\alpha_j + 1)(2\mu_{ij}\alpha_j + 1)}{\alpha_j^2(\mu_{ij}\alpha_j + 1)^2}  \Bigg] \\.
+\frac{\partial^2\bbL }{\partial \alpha_j^2}  &= \sum_{i = 1}^n\Bigg[\Big( \sum_{k = 0}^{y_{ij} - 1} \frac{-k^2}{(k\alpha_j + 1)^2} \Big)  -\frac{2}{\alpha_j^3} \log\Big(1 + \mu_{ij}\alpha_j \Big) %+\frac{\mu_{ij}(1-y_{ij}\alpha_j) (\mu_{ij}\alpha_j + 1) }{\alpha_j^2(\mu_{ij}\alpha_j + 1)} 
+\notag  \\
+& + \frac{\mu_{ij}(1-y_{ij}\alpha_j) (\mu_{ij}\alpha_j + 1)  + \mu_{ij}(y_{ij}\alpha_j + 1)(2\mu_{ij}\alpha_j + 1)}{\alpha_j^2(\mu_{ij}\alpha_j + 1)^2}  \Bigg]. \\
+\frac{\partial^2\bbL }{\partial \alpha_j^2}  &= \sum_{i = 1}^n\Bigg[\Big( \sum_{k = 0}^{y_{ij} - 1} \frac{-k^2}{(k\alpha_j + 1)^2} \Big)  -\frac{2}{\alpha_j^3} \log\Big(1 + \mu_{ij}\alpha_j \Big) %+\frac{\mu_{ij}(1-y_{ij}\alpha_j) (\mu_{ij}\alpha_j + 1) }{\alpha_j^2(\mu_{ij}\alpha_j + 1)} 
+\notag  \\
+& + \frac{\mu_{ij}[2 +\mu_{ij}\alpha_j (3+y_{ij}\alpha_j) ]}{\alpha_j^2(\mu_{ij}\alpha_j + 1)^2}  \Bigg]. 
+%\frac{\partial^2\bbL }{\partial \alpha_j^2}  &= \sum_{i = 1}^n\Bigg[\Big( \sum_{k = 0}^{y_{ij} - 1} \frac{-k^2}{(k\alpha_j + 1)^2} \Big)  -\frac{2}{\alpha_j^3} \log\Big(1 + \mu_{ij}\alpha_j \Big) %+\frac{\mu_{ij}(1-y_{ij}\alpha_j) (\mu_{ij}\alpha_j + 1) }{\alpha_j^2(\mu_{ij}\alpha_j + 1)} 
+%\notag  \\
+%& + \frac{\mu_{ij}[2 + \mu_{ij} (2 + \alpha_j +y_{ij}\alpha_j (2 - \alpha_j))   ]}{\alpha_j^2(\mu_{ij}\alpha_j + 1)^2}  \Bigg].
+\end{align*}
+
+
+%{\cb Deviance calculation of the model}
+\begin{align*}
+\M{Residual deviance} &= 2(\M{loglik(saturated)} - \M{loglik(proposed)}) \\
+&=2(\bbL(\Y;\Y,\bPhi) - \bbL(\Y;\bs\mu,\bPhi) ) \\
+&= 2\Bigg[ \sum_{i}\sum_{j} y_{ij}\log \frac{y_{ij}}{\mu_{ij}} - (y_{ij} + \phi_j)\log\Bigg( \frac{\phi_j + y_{ij}}{\phi_j + \mu_{ij}} \Bigg)\Bigg]
+\end{align*}
+
+
+
+
+
+%
+%\begin{algorithm}[htp]
+%	\caption{Generalized Co-Sparse Factor Regression via Sequential Extraction}
+%	\begin{algorithmic}\label{sec2:alg:1}
+%          \STATE Initialize: $\bbeta^{(0)}$, $\bPhi^{(0)}$, and set the maximum number of steps $r \geq 1$, e.g., an upper bound of $\M{rank}(\C)$.
+%		\FOR{$k \gets 1 \, \M{ to }\, r$}
+%		\STATE (1) Update offset: $\bO^{(k)} = \bO+ \X\sum_{i=2}^k\what{\C}_{i-1}$
+%		\STATE (2) G-CURE with tuning (see Section \ref{sec2:computation}):\\
+%                       $(\what{d}_k,\what{\u}_k,\what{\v}_k,\what{\bbeta},\what{\bPhi})  =  \mbox{G-CURE}(\C,\bbeta,\bPhi; \Y, \X,\bO^{(k)}, \rho)$, and $\what{\C}_k  =  \what{d}_k\what{\u}_k\what{\v}_k\trans$.                
+%		\IF{$\what{d}_k=0$} 
+%		\STATE{Set $\what{r} = k$; $k \leftarrow r$;} 
+%		\ENDIF
+%		\ENDFOR
+%				\RETURN{$\what{\C} = \sum_{k=1}^{\what{r}} \what{\C}_k$,  $\what{\bbeta}$, $\what{\bPhi}$.}
+%	\end{algorithmic}
+%\end{algorithm}
+%
+%\begin{algorithm}[!h]
+%  \caption{Generalized Co-Sparse Unit-Rank Estimation}
+%%  {\color{red} Aditya, please revise this accordingly.}
+%\begin{algorithmic}\label{alg:spmrrr}
+%\STATE Given: $\X$, $\Y$, $\Z$, $\W$, $\bO$, $\kappa_0$, $\lambda$, $\alpha$.
+%\STATE Initialize $\u^{(0)} = \widetilde{\u}$, $\v^{(0)} = \widetilde{\v}$, $d^{(0)} = \widetilde{d}$, $\bbeta^{(0)} = \widetilde{\bbeta}$, $\bPhi^{(0)} =  \widetilde{\bPhi}$. Set $t\gets0$.
+%\REPEAT
+%\STATE Set $s_u  =  \kappa_0\|\X\|^2/\varphi$, $s_{\beta} = \kappa_0\|\Z\|^2/\varphi$,  $s_v =   n\kappa_0/\varphi$ where $\varphi = \min(\bPhi^{(t)} )$. 
+%\vspace{0.1cm}
+%\STATE (1) $\u$-step:   Set $\check{\u} = d^{(t)}\u^{(t)}$ and $\v =\v^{(t)}$. Update $\check{\u}^{(t+1)}$ using  \eqref{eq:ustepupdate}. 
+% Recover block variable  ($\tilde{d}^{(t+1)},\u^{(t+1)}$) using equality constraint in \eqref{eq:gcure:objT}.
+%\vspace{0.1cm}
+%\STATE (2) $\v$-step:  Set $\check{\v} = \tilde{d}^{(t+1)}\v^{(t)}$ and $\u =\u^{(t+1)}$. Update $\check{\v}^{(t+1)}$ using  \eqref{eq:vupdatestep}.
+%Recover block variable  ($d^{(t+1)},\v^{(t+1)}$) using equality constraint in \eqref{eq:gcure:objT}.
+%\vspace{0.1cm}
+%\STATE (3) $\bbeta$-step: Update $\bbeta^{(t+1)} $ using \eqref{eq:zupdaatestep}.
+%\vspace{0.1cm}
+%\STATE (4) $\bPhi$-step:
+%$\bPhi^{(t+1)} = \arg\max_{\bPhi} \bbL( \bs\Theta(\C^{(t+1)}, \bbeta^{(t+1)}),\bPhi)$. 
+%\vspace{0.1cm}
+%\STATE $t\gets t+1$.
+%\UNTIL {convergence, e.g., the relative $\ell_2$ change in parameters is less than $\epsilon = 10^{-6}$.}\\
+%\RETURN{$\widehat{\u}$, $\widehat{d}$, $\widehat{\v}$,  $\widehat{\bbeta}$, $\widehat{\bPhi}$.}
+%\end{algorithmic}
+%\end{algorithm}
+
+
+
+
+
+%The statement holds for any $s_c$ that upper bound $\sup_{\C}\|\bs\nabla^2 \bbL(\bs\Theta({\C}))\|$
+
+%\section*{References}
+\bibliography{library}
+
+\end{document}
