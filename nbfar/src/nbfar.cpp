@@ -1,7 +1,9 @@
 #include <RcppArmadillo.h>
 // [[Rcpp::depends(RcppArmadillo)]]
-
+#include <stdlib.h>
+#include <stdexcept>
 #include <Rcpp.h>
+
 
 using namespace arma;
 using namespace Rcpp;
@@ -20,7 +22,7 @@ using namespace Rcpp;
 // likelihood =  2|Saturated model - 2fit moodel|
 //
 //
-//
+// nbrrr_likelihood, update_mu_alpha, grad_mu_nb, get_sv
 //
 
 // Model diagnostic to verify deviance calculation
@@ -86,12 +88,19 @@ arma::mat grad_eta_nb(arma::mat Y, arma::mat eta, arma::vec Phi){
 
 
 // [[Rcpp::export]]
-arma::mat grad_mu_nb(arma::mat Y, arma::mat mu, arma::vec Phi){
-  arma::mat tem = mu.each_row() + Phi.t();
-  arma::mat tem1 = mu.each_row()%Phi.t();
-  tem1 = tem1/tem;
+arma::mat grad_mu_nb(const arma::mat &Y, const arma::mat &mu,
+                     const arma::vec &Phi){
+// arma::mat grad_mu_nb(arma::mat Y, arma::mat mu,
+//                      arma::vec Phi){
+  arma::mat tem  = mu, tem1 = mu;
+  tem.each_row() += Phi.t();
+  tem1.each_row() %= Phi.t();
+  tem1 /= tem;
   tem = Phi.t()/tem.each_row();
-  return(-Y%tem + tem1);
+  // tem = -Y%tem  + tem1;
+  tem %= -Y;  tem += tem1;
+  tem.elem(find_nonfinite(tem) ).zeros();
+  return(tem);
 }
 
 // // [[Rcpp::export]]
@@ -103,8 +112,8 @@ arma::mat grad_mu_nb(arma::mat Y, arma::mat mu, arma::vec Phi){
 
 
 // mu = exp(X0 %*% C0); phi = rep(20, q)
-  // phi2 = update_mu_phi(Y, mu, phi)
-  // phi2 = update_mu_phi(Y, mu, phi2)
+// phi2 = update_mu_phi(Y, mu, phi)
+// phi2 = update_mu_phi(Y, mu, phi2)
 
 
 // Newton-Raphson update for the dispersion parameter
@@ -144,7 +153,12 @@ arma::vec update_mu_phi(arma::mat Y, arma::mat mu, arma::vec Phi){
   tem = conv_to<arma::vec>::from(sum(T1_g + T2 + T3_g,0)/sum(T1_h -T2/d1 + T3_h,0));
   // cout << sum(T1_g + T2 + T3_g,0) << endl;
   // cout << sum(T1_h -T2/d1 + T3_h,0) << endl;
-  return(Phi - tem);
+  a = Phi - tem;
+  // if(a.has_nan()) {
+  //   cout << a << "  "<< Phi << "  "<< accu(Y) << "  " <<accu(mu)<< std::endl;
+  //   throw std::runtime_error("error aditya");
+  // }
+  return(a);
 }
 
 
@@ -156,8 +170,10 @@ arma::vec update_mu_phi(arma::mat Y, arma::mat mu, arma::vec Phi){
 // after reparameterization of the variable
 // use need to pass mean parameter mu and current update
 // [[Rcpp::export]]
-arma::vec update_mu_alpha(arma::mat Y, arma::mat mu,
-                          arma::vec Phi, arma::mat naind){
+arma::vec update_mu_alpha(const arma::mat &Y, const arma::mat &mu,
+                          const arma::vec &Phi, const arma::mat &naind){
+// arma::vec update_mu_alpha( arma::mat Y,  arma::mat mu,
+//                            arma::vec Phi,  arma::mat naind){
   // compute T1
   arma::vec alpha = 1/Phi;
   arma::vec tem,a,b;
@@ -203,7 +219,14 @@ arma::vec update_mu_alpha(arma::mat Y, arma::mat mu,
   tem = conv_to<arma::vec>::from(sum(n1%naind,0)/sum(d1%naind,0));
   // cout << sum(T1_g + T2 + T3_g,0) << endl;
   // cout << sum(T1_h -T2/d1 + T3_h,0) << endl;
-  return(1/(alpha - tem));
+  // a = 1/(alpha - tem);
+  // if(a.has_nan()) {
+  //   cout << a << "  "<< Phi << "  "<< alpha << "  " <<accu(mu)<< std::endl;
+  //   throw std::runtime_error("error aditya");
+  // }
+  a = 1/(alpha - tem);
+  a.elem(find(a<0)).fill(1e-6);
+  return(a);
 }
 
 
@@ -218,8 +241,12 @@ arma::vec update_mu_alpha(arma::mat Y, arma::mat mu,
 //   nbrrr_likelihood(y,mu*matrix(1,nrow = nrow(Y),1), log(mu)*matrix(1,nrow = nrow(Y),1),
 //                    matrix(th,1,1), (y !=0)+0)
 // [[Rcpp::export]]
-arma::vec nbrrr_likelihood(arma::mat Y, arma::mat MU, arma::mat ETA,
-                  arma::vec Phi, arma::mat naind) {
+arma::vec nbrrr_likelihood(const arma::mat &Y, const arma::mat &MU,
+                           const arma::mat &ETA,
+                           const arma::vec &Phi, const arma::mat &naind) {
+// arma::vec nbrrr_likelihood( arma::mat Y,  arma::mat MU,
+//                             arma::mat ETA,
+//                             arma::vec Phi,  arma::mat naind) {
   // compute T1
   arma::vec tem,a, out(3);
   arma::mat T1 = zeros(size(Y));
@@ -245,6 +272,37 @@ arma::vec nbrrr_likelihood(arma::mat Y, arma::mat MU, arma::mat ETA,
 }
 
 
+// // [[Rcpp::export]]
+// arma::vec nbrrr_likelihoodx(arma::mat Y, arma::mat MU, arma::mat ETA,
+//                             arma::vec Phi, arma::mat naind) {
+//   // compute T1
+//   arma::vec tem,a, out(3);
+//   arma::mat T1 = zeros(size(Y)),tem_mat;
+//   // int i,j,k;
+//   tem_mat = Y.each_row()+Phi.t();
+//   T1 = lgamma(tem_mat); // - Y_l;
+//   T1.each_row() -= lgamma(Phi.t());
+//   // for(i=0; i < Y.n_cols; i++){
+//   //   k = max(Y.col(i)); tem = ones(k+1);
+//   //   tem.subvec(1,k) = log(linspace(0,k-1,k) + Phi(i));
+//   //   a = tem; a(0) = 0;
+//   //   a = cumsum(a);
+//   //   for( j=0; j < Y.n_rows; j++)
+//   //     T1(j,i) = a(Y(j,i));
+//   // }
+//
+//   // compute T3
+//   arma::mat T3 = tem_mat%(log(1+ MU.each_row()/Phi.t())); // last
+//   arma::mat b = T1 + Y%(ETA.each_row() - log(Phi.t())) - T3; // likelohood
+//   b.elem( find_nonfinite(b) ).zeros();
+//   b= b%naind;
+//   out(2) = accu(naind);
+//   out(0) = accu(b)/out(2);
+//   out(1) = accu(pow(b - out(0),2)%naind)/out(2);
+//   return(out);
+// }
+
+
 
 // [[Rcpp::export]]
 arma::uvec mySdiff(arma::uvec x, arma::uvec y){
@@ -260,8 +318,8 @@ arma::uvec mySdiff(arma::uvec x, arma::uvec y){
 // X;Y;Z;O;r; Zini, PhiIni; ndev[ for convergence critteria]
 // [[Rcpp::export]]
 Rcpp::List nbrrr_cpp(arma::mat Y, arma::mat X0, int rnk, arma::vec cindex,
-                 arma::mat ofset,  arma::mat  Zini, arma::vec PhiIni,
-                 Rcpp::List control, int msind, arma::mat naind){
+                     arma::mat ofset,  arma::mat  Zini, arma::vec PhiIni,
+                     Rcpp::List control, int msind, arma::mat naind){
   bool converged=false;
   int pt = X0.n_cols, q = Y.n_cols,  maxit = control["initmaxit"];
   int cObj = control["objI"];
@@ -310,7 +368,7 @@ Rcpp::List nbrrr_cpp(arma::mat Y, arma::mat X0, int rnk, arma::vec cindex,
     obj(0) = objtem(0);
   }
 
-    //
+  //
   // cout << obj(0) << ' ' << accu(MU) << ' ' << accu(Phi) << ' ' << accu(naind) << std::endl;
 
   timer.tic();
@@ -343,6 +401,7 @@ Rcpp::List nbrrr_cpp(arma::mat Y, arma::mat X0, int rnk, arma::vec cindex,
     MU = exp(ETA);
     if(msind == 1) MU.elem(t4).zeros();
     Phi = update_mu_alpha(Y, MU, Phi,naind);
+    // Phi = update_mu_phi(Y, MU, Phi);
 
     if(cObj!=0){
       obj(iter) = nb_dev(Y, MU, Phi, naind);
@@ -379,13 +438,24 @@ Rcpp::List nbrrr_cpp(arma::mat Y, arma::mat X0, int rnk, arma::vec cindex,
 
 
 // [[Rcpp::export]]
-double get_sv(arma::cube xyx, arma::vec ue, int q){
+double get_sv1(arma::cube xyx, arma::vec ue, int q){
   int iter; arma::vec tem(q);
   for(iter = 0; iter < q; iter++)
     tem(iter) = as_scalar(ue.t()*xyx.slice(iter)*ue);
   return(tem.max()/2.0);
 }
 
+// [[Rcpp::export]]
+double get_sv(const arma::cube &xyx, const arma::vec &ue, int q, arma::uvec tem_uvec){
+// double get_sv( arma::cube xyx,  arma::vec ue, int q, arma::uvec tem_uvec){
+  int iter; arma::vec tem(q); arma::mat X2X2;
+  // arma::uvec tem_uvec = find(ue);
+  for(iter = 0; iter < q; iter++){
+    X2X2 = xyx.slice(iter);
+    tem(iter) = as_scalar((ue(tem_uvec).t()*(X2X2.submat(tem_uvec,tem_uvec))*ue(tem_uvec)));
+  }
+  return(tem.max()/2.0);
+}
 // [[Rcpp::export]]
 double softThres(double x, double lambda) {
   return((x > lambda) ? x - lambda :
@@ -406,6 +476,14 @@ int nzcount(arma::vec x) {
   return y.n_elem;
 }
 
+
+double expm1_maclaurin( double x )
+{
+  const double order = 10;
+  double retval = 1.0;
+  for( int i = order ; 1 < i ; --i ) retval = 1.0 + x*retval/i;
+  return x*retval;
+}
 
 
 
@@ -429,7 +507,7 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
   bool converged=false;
   int pt = X0.n_cols, q = Y.n_cols, n = Y.n_rows,ii=0;
   int p = pt - cindex.n_elem, eea = 0;
-  // int cObj = control["objI"];
+  int cObj = control["objI"];
   double alp = control["elnetAlpha"];
   double spu = control["spU"], spv = control["spV"];
   double wd =  initw["wd"], gamma0 = control["gamma0"];
@@ -438,7 +516,7 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
   arma::uvec cIndexC = mySdiff(linspace<uvec>(0,pt-1,pt), cIndex);
   arma::mat X2 = X0.cols(cIndexC),X1 = X0.cols(cIndex), X3 =X0;
   double sb = get_sc(X1, Y); X1 =  X1/sb;
-  arma::mat xx = X2.t()*X2, X2X2; X2X2 = xx/n;
+  arma::mat xx = X2.t()*X2, X2X2, Y_l = lgamma(Y+1); X2X2 = xx/n;
   arma::cube xyx = zeros(p,p,q);
   for(ii=0; ii < q; ii++) xyx.slice(ii) = X2.t()*(X2.each_col()%(Y.col(ii)+1));
   if(eea==1) X2X2 = diagmat(ones<vec>(X2.n_cols));
@@ -473,6 +551,7 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
   arma::mat ETA = ofset + X0*C;
   arma::mat MU = exp(ETA);
   if(msind == 1) MU.elem(t4).zeros();
+  // tem_v = nbrrr_likelihoodx(Y, MU, ETA, Phi, naind, Y_l);
   tem_v = nbrrr_likelihood(Y, MU, ETA, Phi, naind);
   double obj0 = tem_v(0);
 
@@ -502,9 +581,12 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
   arma::vec diffobj, obj, obj2, plfacv, plfacu,PhiI, relerror = zeros(nlam);
   arma::vec vest, uest, maxitc = zeros(nlam),convval = zeros(nlam), xtyv, xtyu;
   arma::mat facW = alp*wd*(wu*wv.t()),facL;
-  arma::mat X2Y = X2.t()*Y,X1Y = X1.t()*Y;
-  arma::mat grad_mu;
+  arma::mat X2Y = X2.t()*Y,X1Y = X1.t()*Y,zb,xuv;
+  arma::mat grad_mu, ofset_exp = exp(ofset);
+  arma::uvec tem_uvec;
 
+  // sv = (Y.max()+1)*n/2;
+  // su = sqrt(Y.max()+1)*norm(xx,2)/2;
   // converggence: dev/obj
   wall_clock timer;
   for(ii=0; ii < nlam; ii++){
@@ -518,7 +600,11 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
     C.rows(cIndexC) = de*(ue*ve.t());
     C.rows(cIndex) = Zini;
     Phi = PhiIni;
-    MU = exp(ofset + X0*C);
+    zb =ofset + X0.cols(cIndex)*(C.rows(cIndex));
+    xuv = X0.cols(cIndexC)*(C.rows(cIndexC));
+    // MU = ofset_exp%exp(X0*C);
+    MU = exp(zb + xuv);
+    // MU = ofset_exp%exp(X0*C);
     obj(0) = obj0;
 
     timer.tic();
@@ -527,68 +613,77 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
       ue_temp = ue; ve_temp = ve; de_temp = de;
       MU_temp = MU;
       Phi_temp = Phi;
-      if(msind == 1) MU.elem(t4).zeros();
+      // if(msind == 1) MU.elem(t4).zeros(); /////////
 
 
       // update  ve
-      sv = get_sv(xyx,ue,q);
+      tem_uvec = find(ue);
+      sv = get_sv(xyx,ue,q, tem_uvec);
       grad_mu = grad_mu_nb(Y, MU, Phi);
       if(msind == 1) grad_mu.elem(t4).zeros();
       // cout << " C " << accu(grad_mu) <<  " "<< accu(MU)<<  " "<< accu(C)<<  " "<< accu(ue)<<  " "<< accu(ve) <<  " "<< accu(de) << std::endl;
-      xtyv = de*ve - (grad_mu.t()*(X2*ue))/sv;
+      xuv =X2.cols(tem_uvec)*ue(tem_uvec);
+      xtyv = de*ve - (grad_mu.t()*xuv)/sv;
       plfacv =  (facL.t()*abs(ue))/sv;
-      // cout << " C " << accu(plfacv) <<  " "<< accu(xtyv) << std::endl;
       vest = softT(xtyv,plfacv)/(1+2*fac*accu(square(ue))/sv);
       svk = norm( vest,2);
       if(svk==0){
-        // cout << " C " <<  sv  << std::endl;
         de = 0;ue.zeros(p);ve.zeros(q); break;
       } else {
         de = svk;
         ve = vest/svk;
       }
-      C.rows(cIndexC) = (ue*de)*ve.t();
-      MU = exp(ofset + X0*C);
 
       // update ue
-      su = norm(xx + X2.t()*(X2.each_col()%(Y*square(ve))),2)/2;
+      tem_uvec = find(ve); ETA  = zb;
+      ETA.cols(tem_uvec) = ETA.cols(tem_uvec) +  xuv*vest(tem_uvec).t();
+      MU = exp(ETA);
+
+      su = norm(xx + X2.t()*(X2.each_col()%(Y.cols(tem_uvec)*square(ve(tem_uvec)))),2)/2;
       grad_mu = grad_mu_nb(Y, MU, Phi);
       if(msind == 1) grad_mu.elem(t4).zeros();
-      xtyu = de*ue - (X2.t()*(grad_mu*ve))/su;
+      xtyu = de*ue - (X2.t()*(grad_mu.cols(tem_uvec)*ve(tem_uvec)))/su;
       plfacu = (facL*abs(ve))/su;
       uest = softT(xtyu,plfacu)/(1+2*fac/su);
-      suk = as_scalar(sqrt((uest.t()*X2X2*uest)));
+      suk = norm(uest,2);
       if(suk==0){
-        // cout << " B " << su << std::endl;
         de = 0;ue.zeros(p);ve.zeros(q);
         C.rows(cIndexC) = 0*C.rows(cIndexC); break;
       } else {
-        de = suk;
-        ue = uest/suk;
+        tem_uvec = find(uest);
+        de = as_scalar(sqrt((uest(tem_uvec).t()*X2X2.submat(tem_uvec,tem_uvec)*uest(tem_uvec))));
+        ue = uest/de;
       }
       C.rows(cIndexC) = (ue*de)*ve.t();
-      MU = exp(ofset + X0*C);
 
 
       // Z-step:
-      ETA  = ofset + X0*C;
+      xuv = X2.cols(tem_uvec)*uest(tem_uvec);
+      ETA  = zb;
+      tem_uvec = find(ve); xuv = xuv*ve(tem_uvec).t();
+      ETA.cols(tem_uvec) = ETA.cols(tem_uvec) +  xuv;
       MU = exp(ETA);
-      if(msind == 1) MU.elem(t4).zeros();
+      // if(msind == 1) MU.elem(t4).zeros(); /////// 2
       grad_mu = grad_mu_nb(Y, MU, Phi);
       if(msind == 1) grad_mu.elem(t4).zeros();
       C.rows(cIndex) = C.rows(cIndex) -   X1.t()*grad_mu;
+      zb =ofset + X0.cols(cIndex)*C.rows(cIndex);
 
 
       // Phi-step:
-      ETA  = ofset + X0*C;
+      ETA  = zb;  ETA.cols(tem_uvec) = ETA.cols(tem_uvec) +  xuv;
       MU = exp(ETA);
-      if(msind == 1) MU.elem(t4).zeros();
+      // if(msind == 1) MU.elem(t4).zeros(); ///////
       Phi = update_mu_alpha(Y, MU, Phi,naind);
 
 
-      tem_v = nbrrr_likelihood(Y, MU, ETA, Phi, naind);
-      obj(iter) = tem_v(0) + alp*as_scalar(de*lam*wd*(wu.t()*abs(ue))*(wv.t()*abs(ve))) +
-        (1-alp)*lam*(de*de)*as_scalar((ue.t()*ue)*(ve.t()*ve));
+      if(cObj!=0){
+        obj(iter) = nb_dev(Y, MU, Phi, naind);
+      } else {
+        tem_v = nbrrr_likelihood(Y, MU, ETA, Phi, naind);
+        obj(iter) = tem_v(0) + alp*as_scalar(de*lam*wd*(wu.t()*abs(ue))*(wv.t()*abs(ve))) +
+          (1-alp)*lam*(de*de)*as_scalar((ue.t()*ue)*(ve.t()*ve));
+      }
       diffobj(iter) = abs((obj(iter) - obj(iter- 1)))/(abs(obj(iter)) + 0.1);
       relerror(ii) = diffobj(iter);
       if (abs(diffobj(iter)) < epsilon ) {
@@ -621,8 +716,8 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
     zpath.slice(ik) = Ct.rows(cIndex);
     Ckpath.slice(ik) = Ct;
 
-    ETA = ofset + X0*C;
-    MU = exp(ETA);
+    ETA = ofset + X0*C; ///////
+    MU = exp(ETA); ///////
     SSE = nb_dev(Y, MU, Phi, naind)/qn;
     df = nzcount(ue) + nzcount(ve)  +(pt-p)*q -1;
 

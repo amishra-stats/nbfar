@@ -37,8 +37,12 @@ nbrrr_cpp <- function(Y, X0, rnk, cindex, ofset, Zini, PhiIni, control, msind, n
     .Call('_nbfar_nbrrr_cpp', PACKAGE = 'nbfar', Y, X0, rnk, cindex, ofset, Zini, PhiIni, control, msind, naind)
 }
 
-get_sv <- function(xyx, ue, q) {
-    .Call('_nbfar_get_sv', PACKAGE = 'nbfar', xyx, ue, q)
+get_sv1 <- function(xyx, ue, q) {
+    .Call('_nbfar_get_sv1', PACKAGE = 'nbfar', xyx, ue, q)
+}
+
+get_sv <- function(xyx, ue, q, tem_uvec) {
+    .Call('_nbfar_get_sv', PACKAGE = 'nbfar', xyx, ue, q, tem_uvec)
 }
 
 softThres <- function(x, lambda) {

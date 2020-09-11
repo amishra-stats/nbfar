@@ -51,11 +51,13 @@ nbCol <- function(Y, X0, ofset, naind) {
   PHI <- rep(0, q)
   Cini <- matrix(0, nrow = ncol(X0), ncol = q)
   for (i in 1:q) {
+    print(i)
     qqq <- naind[,i] == 1
-    ft <- MASS::glm.nb(Y[qqq, i]~X0[qqq, ] + stats::offset(ofset[qqq, i]) -1,
-                 control = stats::glm.control(maxit = 1000, epsilon = 1e-5),
-                 init.theta = MASS::glm.nb(Y[qqq, i]~1+
-                                             stats::offset(ofset[qqq,i]))$theta)
+    ft <- MASS::glm.nb(Y[qqq, i]~X0[qqq, ] + offset(ofset[qqq, i]) -1,
+                       control = stats::glm.control(maxit = 10000, epsilon = 1e-5),
+                       init.theta = MASS::glm.nb(Y[qqq, i]~1+
+                                                   offset(ofset[qqq,i]))$theta)
+    tem = coef(ft); tem[is.na(tem)] <- 0
     Cini[, i] <- ft$coefficients
     PHI[i] <- ft$theta
   }
@@ -196,7 +198,7 @@ nbfar_sim <- function(U, D, V, n, Xsigma, C0,disp,depth) {
 
 
 # Yt = Y; maxrank = 5; cIndex = NULL; ofset = NULL
-# control = gofar_control();  nfold = 5
+# control = nbfar_control();  nfold = 5
 # set.seed(1234)
 # nbrrr_test <- nbrrr(Yt, X, maxrank = 7, cIndex = NULL, ofset = NULL,
 #       control = gofar_control(initmaxit = 5000, initepsilon = 1e-3), nfold = 5)
@@ -317,16 +319,17 @@ nbrrr <- function(Yt, X, maxrank = 10,
   naind <- (!is.na(Y)) + 0 # matrix(1,n,q)
   misind <- any(naind == 0) + 0
   if (misind == 1) Yin[is.na(Y)] <- 0
-  init_model <- nbCol(Y, X0, ofset, naind)
-  C <- C0 <- init_model$C[-cIndex,, drop = FALSE]
-  Z <- Z0 <- init_model$C[cIndex,, drop = FALSE]
-  PHI <- PHI0 <- init_model$PHI
+  # init_model <- nbCol(Yin, X0, ofset, naind)
+  init_model <- nbZeroSol(Yin, X0, cIndex, ofset, naind)
+  # Z0 <- init_model$C[cIndex,, drop = FALSE]
+  Z0 <- init_model$Z
+  PHI0 <- init_model$PHI
 
   ## Begin exclusive extraction procedure
   N.nna <- sum(!is.na(Y))
   naind <- (!is.na(Y)) + 0
   ind.nna <- which(!is.na(Y))
-  fit.nlayer <- fit.nfold <- vector("list", maxrank)
+  fit.nfold <- vector("list", maxrank)
   # generate kfold index
   ID <- rep(1:nfold, len = N.nna)
   ID <- sample(ID, N.nna, replace = FALSE)
@@ -350,17 +353,17 @@ nbrrr <- function(Yt, X, maxrank = 10,
       naind2 <- (!is.na(Ytr)) + 0 # matrix(1,n,q)
       misind <- any(naind2 == 0) + 0
       Ytr[is.na(Ytr)] <- 0
-      tryCatch({
+      # tryCatch({
         fitT[[ifold]] <- nbrrr_cpp(Ytr, X0, k, cIndex, ofset,
-                               Z0,  PHI0, control,
-                               misind, naind2)
+                                   Z0,  PHI0, control,
+                                   misind, naind2)
         # compute test sample error
         tem  <- nbrrr_likelihood(Yte, fitT[[ifold]]$mu, fitT[[ifold]]$eta,
                                  fitT[[ifold]]$PHI, (!is.na(Yte)) + 0)
         dev[ifold, k] = tem[1];
         sdcal[ifold, k] = tem[2];
         tec[ifold] <- tem[3];
-      }, error=function(e) print("nbrrr execution issue!") )
+      # }, error=function(e) print("nbrrr execution issue!") )
 
     }
     fit.nfold[[k]] <- fitT
@@ -371,8 +374,9 @@ nbrrr <- function(Yt, X, maxrank = 10,
 
   # compute model estimate for the selected rank
   misind <- any(naind == 0) + 0
+  control_nbrr <- nbfar_control(initmaxit = 5000, initepsilon = 1e-7)
   out <- nbrrr_cpp(Y, X0, rank_sel, cIndex, ofset, Z0,  PHI0,
-               control, misind, naind)
+                   control_nbrr, misind, naind)
   out$cv.err <- dev
   XC <- X0[, -cIndex] %*% out$C[-cIndex, ]
   out$Z <- matrix(out$C[cIndex, ], ncol = q)
@@ -586,8 +590,9 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
   # Implementation of k-fold cross validation:
   for (k in 1:maxrank) { # desired rank extraction # k = 1
     cat("Initializing unit-rank unit", k, "\n")
+    control_nbrrr <- nbfar_control()
     xx <- nbrrr_cpp(Yf2, X0, 1, cIndex, ofset,
-                    Z,  PHI, control,
+                    Z,  PHI, control_nbrrr,
                     misind22, naind22)
     # print(c(xx$maxit,xx$converge,ndev))
     XC <- X0[, -cIndex] %*% xx$C[-cIndex, ]
@@ -674,10 +679,11 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
     naind <- (!is.na(Yf)) + 0 # matrix(1,n,q)
     misind <- any(naind == 0) + 0
     Yf[is.na(Yf)] <- 0
+    save(list=ls(),file= 'aditya.rda')
     # zerosol <- nbZeroSol(Yf, X0, c_index= cIndex, ofset, naind)
     if ( PATH ) {
-      control1 <- control
-      control1$spU  = 0.9; control1$spV = 0.9
+      control1 <- nbfar_control(lamMinFac = 1e-10, spU  = 0.9, spV = 0.9)
+      # control1$spU  = 0.9; control1$spV = 0.9
       fit.nlayer[[k]] <- fit.layer <- nbfar_cpp(Yf,X0, nlam = nlambda,
                                                 cindex = cIndex,
                                                 ofset = ofset,
@@ -698,7 +704,7 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
       }
     } else {
       control1 <- control
-      control1$lamMinFac <- 1; control1$spU  = 0.9; control1$spV = 0.9
+      control1$lamMinFac <- 1; control1$epsilon = 1e-12
       fit.nlayer[[k]] <- fit.layer <- nbfar_cpp(Yf,X0, nlam = 1,
                                                 cindex = cIndex,
                                                 ofset = ofset,

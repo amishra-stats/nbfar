@@ -46,14 +46,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // grad_mu_nb
-arma::mat grad_mu_nb(arma::mat Y, arma::mat mu, arma::vec Phi);
+arma::mat grad_mu_nb(const arma::mat& Y, const arma::mat& mu, const arma::vec& Phi);
 RcppExport SEXP _nbfar_grad_mu_nb(SEXP YSEXP, SEXP muSEXP, SEXP PhiSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type mu(muSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type Phi(PhiSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type Phi(PhiSEXP);
     rcpp_result_gen = Rcpp::wrap(grad_mu_nb(Y, mu, Phi));
     return rcpp_result_gen;
 END_RCPP
@@ -72,30 +72,30 @@ BEGIN_RCPP
 END_RCPP
 }
 // update_mu_alpha
-arma::vec update_mu_alpha(arma::mat Y, arma::mat mu, arma::vec Phi, arma::mat naind);
+arma::vec update_mu_alpha(const arma::mat& Y, const arma::mat& mu, const arma::vec& Phi, const arma::mat& naind);
 RcppExport SEXP _nbfar_update_mu_alpha(SEXP YSEXP, SEXP muSEXP, SEXP PhiSEXP, SEXP naindSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type mu(muSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type Phi(PhiSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type naind(naindSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type Phi(PhiSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type naind(naindSEXP);
     rcpp_result_gen = Rcpp::wrap(update_mu_alpha(Y, mu, Phi, naind));
     return rcpp_result_gen;
 END_RCPP
 }
 // nbrrr_likelihood
-arma::vec nbrrr_likelihood(arma::mat Y, arma::mat MU, arma::mat ETA, arma::vec Phi, arma::mat naind);
+arma::vec nbrrr_likelihood(const arma::mat& Y, const arma::mat& MU, const arma::mat& ETA, const arma::vec& Phi, const arma::mat& naind);
 RcppExport SEXP _nbfar_nbrrr_likelihood(SEXP YSEXP, SEXP MUSEXP, SEXP ETASEXP, SEXP PhiSEXP, SEXP naindSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type MU(MUSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type ETA(ETASEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type Phi(PhiSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type naind(naindSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type MU(MUSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type ETA(ETASEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type Phi(PhiSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type naind(naindSEXP);
     rcpp_result_gen = Rcpp::wrap(nbrrr_likelihood(Y, MU, ETA, Phi, naind));
     return rcpp_result_gen;
 END_RCPP
@@ -132,16 +132,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// get_sv
-double get_sv(arma::cube xyx, arma::vec ue, int q);
-RcppExport SEXP _nbfar_get_sv(SEXP xyxSEXP, SEXP ueSEXP, SEXP qSEXP) {
+// get_sv1
+double get_sv1(arma::cube xyx, arma::vec ue, int q);
+RcppExport SEXP _nbfar_get_sv1(SEXP xyxSEXP, SEXP ueSEXP, SEXP qSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::cube >::type xyx(xyxSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type ue(ueSEXP);
     Rcpp::traits::input_parameter< int >::type q(qSEXP);
-    rcpp_result_gen = Rcpp::wrap(get_sv(xyx, ue, q));
+    rcpp_result_gen = Rcpp::wrap(get_sv1(xyx, ue, q));
+    return rcpp_result_gen;
+END_RCPP
+}
+// get_sv
+double get_sv(const arma::cube& xyx, const arma::vec& ue, int q, arma::uvec tem_uvec);
+RcppExport SEXP _nbfar_get_sv(SEXP xyxSEXP, SEXP ueSEXP, SEXP qSEXP, SEXP tem_uvecSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::cube& >::type xyx(xyxSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type ue(ueSEXP);
+    Rcpp::traits::input_parameter< int >::type q(qSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type tem_uvec(tem_uvecSEXP);
+    rcpp_result_gen = Rcpp::wrap(get_sv(xyx, ue, q, tem_uvec));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -219,7 +233,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_nbfar_nbrrr_likelihood", (DL_FUNC) &_nbfar_nbrrr_likelihood, 5},
     {"_nbfar_mySdiff", (DL_FUNC) &_nbfar_mySdiff, 2},
     {"_nbfar_nbrrr_cpp", (DL_FUNC) &_nbfar_nbrrr_cpp, 10},
-    {"_nbfar_get_sv", (DL_FUNC) &_nbfar_get_sv, 3},
+    {"_nbfar_get_sv1", (DL_FUNC) &_nbfar_get_sv1, 3},
+    {"_nbfar_get_sv", (DL_FUNC) &_nbfar_get_sv, 4},
     {"_nbfar_softThres", (DL_FUNC) &_nbfar_softThres, 2},
     {"_nbfar_softT", (DL_FUNC) &_nbfar_softT, 2},
     {"_nbfar_nzcount", (DL_FUNC) &_nbfar_nzcount, 1},
