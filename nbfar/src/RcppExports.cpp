@@ -222,6 +222,56 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cv_nbfar_cpp
+Rcpp::List cv_nbfar_cpp(arma::mat Y, arma::mat Xm, int nlam, arma::vec cindex, arma::mat ofset, Rcpp::List initw, arma::mat Zini, arma::vec PhiIni, Rcpp::List xx, double lmax, Rcpp::List control, Rcpp::List zerosol, int maxit, double epsilon, int nfold);
+RcppExport SEXP _nbfar_cv_nbfar_cpp(SEXP YSEXP, SEXP XmSEXP, SEXP nlamSEXP, SEXP cindexSEXP, SEXP ofsetSEXP, SEXP initwSEXP, SEXP ZiniSEXP, SEXP PhiIniSEXP, SEXP xxSEXP, SEXP lmaxSEXP, SEXP controlSEXP, SEXP zerosolSEXP, SEXP maxitSEXP, SEXP epsilonSEXP, SEXP nfoldSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Xm(XmSEXP);
+    Rcpp::traits::input_parameter< int >::type nlam(nlamSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type cindex(cindexSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type ofset(ofsetSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type initw(initwSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Zini(ZiniSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type PhiIni(PhiIniSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type xx(xxSEXP);
+    Rcpp::traits::input_parameter< double >::type lmax(lmaxSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type control(controlSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type zerosol(zerosolSEXP);
+    Rcpp::traits::input_parameter< int >::type maxit(maxitSEXP);
+    Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
+    Rcpp::traits::input_parameter< int >::type nfold(nfoldSEXP);
+    rcpp_result_gen = Rcpp::wrap(cv_nbfar_cpp(Y, Xm, nlam, cindex, ofset, initw, Zini, PhiIni, xx, lmax, control, zerosol, maxit, epsilon, nfold));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cv_nbfar_par
+Rcpp::List cv_nbfar_par(arma::mat Y, arma::mat Xm, int nlam, arma::vec cindex, arma::mat ofset, Rcpp::List initw, arma::mat Zini, arma::vec PhiIni, Rcpp::List xx, double lmax, Rcpp::List control, Rcpp::List zerosol, int maxit, double epsilon, int nfold);
+RcppExport SEXP _nbfar_cv_nbfar_par(SEXP YSEXP, SEXP XmSEXP, SEXP nlamSEXP, SEXP cindexSEXP, SEXP ofsetSEXP, SEXP initwSEXP, SEXP ZiniSEXP, SEXP PhiIniSEXP, SEXP xxSEXP, SEXP lmaxSEXP, SEXP controlSEXP, SEXP zerosolSEXP, SEXP maxitSEXP, SEXP epsilonSEXP, SEXP nfoldSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Xm(XmSEXP);
+    Rcpp::traits::input_parameter< int >::type nlam(nlamSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type cindex(cindexSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type ofset(ofsetSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type initw(initwSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Zini(ZiniSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type PhiIni(PhiIniSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type xx(xxSEXP);
+    Rcpp::traits::input_parameter< double >::type lmax(lmaxSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type control(controlSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type zerosol(zerosolSEXP);
+    Rcpp::traits::input_parameter< int >::type maxit(maxitSEXP);
+    Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
+    Rcpp::traits::input_parameter< int >::type nfold(nfoldSEXP);
+    rcpp_result_gen = Rcpp::wrap(cv_nbfar_par(Y, Xm, nlam, cindex, ofset, initw, Zini, PhiIni, xx, lmax, control, zerosol, maxit, epsilon, nfold));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_nbfar_nb_dev", (DL_FUNC) &_nbfar_nb_dev, 4},
@@ -239,6 +289,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_nbfar_softT", (DL_FUNC) &_nbfar_softT, 2},
     {"_nbfar_nzcount", (DL_FUNC) &_nbfar_nzcount, 1},
     {"_nbfar_nbfar_cpp", (DL_FUNC) &_nbfar_nbfar_cpp, 18},
+    {"_nbfar_cv_nbfar_cpp", (DL_FUNC) &_nbfar_cv_nbfar_cpp, 15},
+    {"_nbfar_cv_nbfar_par", (DL_FUNC) &_nbfar_cv_nbfar_par, 15},
     {NULL, NULL, 0}
 };
 

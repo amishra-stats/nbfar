@@ -61,3 +61,11 @@ nbfar_cpp <- function(Y, Xm, nlam, cindex, ofset, initw, Dini, Zini, PhiIni, Uin
     .Call('_nbfar_nbfar_cpp', PACKAGE = 'nbfar', Y, Xm, nlam, cindex, ofset, initw, Dini, Zini, PhiIni, Uini, Vini, lmax, control, msind, naind, zerosol, maxit, epsilon)
 }
 
+cv_nbfar_cpp <- function(Y, Xm, nlam, cindex, ofset, initw, Zini, PhiIni, xx, lmax, control, zerosol, maxit, epsilon, nfold) {
+    .Call('_nbfar_cv_nbfar_cpp', PACKAGE = 'nbfar', Y, Xm, nlam, cindex, ofset, initw, Zini, PhiIni, xx, lmax, control, zerosol, maxit, epsilon, nfold)
+}
+
+cv_nbfar_par <- function(Y, Xm, nlam, cindex, ofset, initw, Zini, PhiIni, xx, lmax, control, zerosol, maxit, epsilon, nfold) {
+    .Call('_nbfar_cv_nbfar_par', PACKAGE = 'nbfar', Y, Xm, nlam, cindex, ofset, initw, Zini, PhiIni, xx, lmax, control, zerosol, maxit, epsilon, nfold)
+}
+

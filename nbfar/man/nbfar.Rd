@@ -13,7 +13,8 @@ nbfar(
   ofset = NULL,
   control = list(),
   nfold = 5,
-  PATH = FALSE
+  PATH = FALSE,
+  nthread = 1
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ nbfar(
 \item{nfold}{number of folds in k-fold crossvalidation}
 
 \item{PATH}{TRUE/FALSE for generating solution path of sequential estimate after cross-validation step}
+
+\item{nthread}{number of thread to be used for parallelization}
 }
 \value{
 \item{C}{estimated coefficient matrix; based on GIC}

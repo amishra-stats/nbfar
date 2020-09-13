@@ -1,12 +1,16 @@
-#include <RcppArmadillo.h>
+// [[Rcpp::depends(RcppParallel)]]
 // [[Rcpp::depends(RcppArmadillo)]]
+#include <RcppArmadillo.h>
+#include <RcppParallel.h>
 #include <stdlib.h>
 #include <stdexcept>
 #include <Rcpp.h>
+#include <iostream>
 
-
-using namespace arma;
 using namespace Rcpp;
+using namespace RcppParallel;
+using namespace arma;
+
 
 // This is a simple example of exporting a C++ function to R. You can
 // source this function into an R session using the Rcpp::sourceCpp
@@ -596,10 +600,12 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
     diffobj.zeros(maxit);obj.zeros(maxit+1);obj2.zeros(5*(maxit+1));
 
     // set initialization for the optimization;
-    ue = Uini; ve = Vini; de = Dini;
+    if(norm(C.rows(cIndexC),"fro") == 0){
+      ue = Uini; ve = Vini; de = Dini;
+      C.rows(cIndex) = Zini;
+      Phi = PhiIni;
+    }
     C.rows(cIndexC) = de*(ue*ve.t());
-    C.rows(cIndex) = Zini;
-    Phi = PhiIni;
     zb =ofset + X0.cols(cIndex)*(C.rows(cIndex));
     xuv = X0.cols(cIndexC)*(C.rows(cIndexC));
     // MU = ofset_exp%exp(X0*C);
@@ -758,5 +764,194 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
 
 
 
+
+// [[Rcpp::export]]
+Rcpp::List cv_nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
+                        arma::mat ofset, Rcpp::List initw,
+                        arma::mat  Zini, arma::vec PhiIni,
+                        Rcpp::List xx,
+                        double lmax, Rcpp::List control,
+                        Rcpp::List zerosol,int maxit, double epsilon,
+                        int nfold){
+  arma::mat Ytr(size(Y)), Yte(size(Y)), natr(size(Y)), nate(size(Y));
+  arma::uvec indna = find_finite(Y),teIndex, trIndex;
+  arma::vec ID = linspace(0, indna.n_elem-1, indna.n_elem);
+  ID = ID - 5*floor(ID/5); ID = ID(randperm(indna.n_elem));
+  int misind,insel;
+  Rcpp::List fitF;
+  double Dini = xx["D"],lam;
+  arma::mat  Uini = xx["U"]; arma::vec Vini  = xx["V"];
+  arma::vec phiest, tttval(3), tec(5);
+  arma::mat mutest, etatest;
+  arma::mat dev(nfold, nlam), sdcal(nfold, nlam);
+  dev.fill(datum::nan); sdcal.fill(datum::nan);
+
+  for(int ifold=0; ifold < nfold; ifold++){
+    // cout << "Fold " << ifold << std::endl;
+    teIndex = indna(find(ID == ifold));
+    trIndex = indna(find(ID != ifold));
+    Ytr.zeros(); Yte.zeros();natr.zeros(); nate.zeros();
+    Ytr.elem(trIndex) = Y.elem(trIndex);
+    Yte.elem(teIndex) = Y.elem(teIndex);
+    natr.elem(trIndex) = ones<vec>(trIndex.n_elem);
+    nate.elem(teIndex) = ones<vec>(teIndex.n_elem);
+    misind = 1;
+    fitF =  nbfar_cpp(Ytr, Xm,  nlam, cindex,
+                       ofset, initw , Dini, Zini, PhiIni,
+                      Uini, Vini, lmax , control, misind,
+                      natr, zerosol, maxit, epsilon);
+    int nfit = fitF["nkpath"]; arma::vec  lamkpath = fitF["lamKpath"];
+    arma::vec lamseq = fitF["lamseq"]; arma::cube mukpath = fitF["mukpath"];
+    arma::cube etapath = fitF["etapath"]; arma::mat phipath = fitF["phipath"];
+    for (int im = 0; im < nfit; im++) {
+      lam  = lamkpath(im);
+      insel =  conv_to< int >::from(find(lamseq == lam));
+      mutest = mukpath.slice(im); etatest = etapath.slice(im);
+      mutest.elem(trIndex) =  ones<vec>(trIndex.n_elem);
+      etatest.elem(trIndex) =  zeros<vec>(trIndex.n_elem);
+      phiest = phipath.col(im);
+      tttval = nbrrr_likelihood(Yte, mutest, etatest, phiest, nate);
+      dev(ifold, insel) = tttval(0);
+      sdcal(ifold,insel) = tttval(1);
+      tec(ifold) = tttval(2);
+    }
+  }
+  Rcpp::List out;
+  out["lamseq"] = fitF["lamseq"];
+  out["dev"] = dev;
+  out["sdcal"] = sdcal;
+  out["tec"] = tec;
+  // out["lamseq"] = arma::conv_to<arma::vec>::from(lamseq);
+  return out;
+}
+
+
+
+
+
+
+
+
+
+
+struct ParCv : public RcppParallel::Worker
+{
+  const arma::vec ID; const arma::uvec indna;
+  arma::vec lamseq; arma::mat dev; arma::mat sdcal;
+  arma::vec tec;
+  const arma::mat Y; const arma::mat Xm;
+  int nlam; const arma::vec  cindex;
+  const arma::mat ofset; const Rcpp::List initw;
+  double Dini; const arma::mat Zini; const arma::vec PhiIni;
+  const arma::mat Uini; const arma::vec Vini;
+  double lmax; const Rcpp::List control;
+  const Rcpp::List zerosol; int maxit; double epsilon;
+
+  // // destination matrix
+  // arma::mat dev, sdcal;
+  // arma::vec tec, lamseq;
+  //
+  // // source matrix
+  // const arma::uvec indna;
+  // double Dini, lmax,epsilon;
+  // const arma::mat  Uini, Y, Xm,ofset, Zini;
+  // const arma::vec Vini, cindex, PhiIni, ID;
+  // const Rcpp::List control, zerosol, initw;
+  // int maxit,nlam;
+
+  // initialize with source and destination
+  ParCv(const arma::vec ID, const arma::uvec indna,
+        arma::vec lamseq, arma::mat dev,arma::mat sdcal,
+        arma::vec tec,
+        const arma::mat Y, const arma::mat Xm,
+        int nlam, const arma::vec  cindex,
+        const arma::mat ofset, const Rcpp::List initw,
+        double Dini, const arma::mat Zini, const arma::vec PhiIni,
+        const arma::mat Uini, const arma::vec Vini,
+        double lmax , const Rcpp::List control,
+        const Rcpp::List zerosol, int maxit, double epsilon)
+    : ID(ID),indna(indna),lamseq(lamseq),dev(dev),sdcal(sdcal),tec(tec),
+      Y(Y), Xm(Xm),  nlam(nlam), cindex(cindex),
+      ofset(ofset), initw(initw) , Dini(Dini), Zini(Zini),
+      PhiIni(PhiIni), Uini(Uini), Vini(Vini), lmax(lmax) , control(control),
+      zerosol(zerosol), maxit(maxit), epsilon(epsilon) {}
+
+
+  // take the square root of the range of elements requested
+  void operator()(std::size_t begin, std::size_t end) {
+    for(size_t k = begin; k < end; k++) {
+      int ifold = k;
+      arma::uvec teIndex, trIndex;
+      arma::mat Ytr(size(Y)), Yte(size(Y)), natr(size(Y)), nate(size(Y));
+      int misind,insel;
+      Rcpp::List fitF;
+      double lam;
+      arma::vec phiest, tttval(3);
+      arma::mat mutest, etatest;
+
+      teIndex = indna(find(ID == ifold));
+      trIndex = indna(find(ID != ifold));
+      Ytr.zeros(); Yte.zeros();natr.zeros(); nate.zeros();
+      Ytr.elem(trIndex) = Y.elem(trIndex);
+      Yte.elem(teIndex) = Y.elem(teIndex);
+      natr.elem(trIndex) = ones<vec>(trIndex.n_elem);
+      nate.elem(teIndex) = ones<vec>(teIndex.n_elem);
+      misind = 1;
+      fitF =  nbfar_cpp(Ytr, Xm,  nlam, cindex,
+                        ofset, initw , Dini, Zini, PhiIni,
+                        Uini, Vini, lmax , control, misind,
+                        natr, zerosol, maxit, epsilon);
+      int nfit = fitF["nkpath"]; arma::vec  lamkpath = fitF["lamKpath"];
+      arma::vec lamseqx = fitF["lamseq"]; arma::cube mukpath = fitF["mukpath"];
+      arma::cube etapath = fitF["etapath"]; arma::mat phipath = fitF["phipath"];
+      for (int im = 0; im < nfit; im++) {
+        lam  = lamkpath(im);
+        insel =  conv_to< int >::from(find(lamseqx == lam));
+        mutest = mukpath.slice(im); etatest = etapath.slice(im);
+        mutest.elem(trIndex) =  ones<vec>(trIndex.n_elem);
+        etatest.elem(trIndex) =  zeros<vec>(trIndex.n_elem);
+        phiest = phipath.col(im);
+        tttval = nbrrr_likelihood(Yte, mutest, etatest, phiest, nate);
+        dev(ifold, insel) = tttval(0);
+        sdcal(ifold,insel) = tttval(1);
+        tec(ifold) = tttval(2);
+      }
+      lamseq = lamseqx;
+    }
+  }
+};
+
+
+
+// [[Rcpp::export]]
+Rcpp::List cv_nbfar_par(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
+                        arma::mat ofset, Rcpp::List initw,
+                        arma::mat  Zini, arma::vec PhiIni,
+                        Rcpp::List xx,
+                        double lmax, Rcpp::List control,
+                        Rcpp::List zerosol,int maxit, double epsilon,
+                        int nfold){
+  arma::uvec indna = find_finite(Y);
+  arma::vec ID = linspace(0, indna.n_elem-1, indna.n_elem);
+  ID = ID - 5*floor(ID/5); ID = ID(randperm(indna.n_elem));
+  // input
+  double Dini = xx["D"];
+  arma::mat  Uini = xx["U"]; arma::vec Vini  = xx["V"];
+  // Output
+  arma::mat dev(nfold, nlam), sdcal(nfold, nlam);
+  dev.fill(datum::nan); sdcal.fill(datum::nan);
+  arma::vec tec(nfold), lamseq(nlam);
+  // Constructer of the class
+  ParCv cv_nbfar(ID,indna,lamseq,dev,sdcal,tec, Y, Xm,  nlam, cindex,
+                 ofset, initw , Dini, Zini, PhiIni, Uini, Vini, lmax , control,
+                 zerosol, maxit, epsilon);
+  parallelFor(0, nfold, cv_nbfar);
+  Rcpp::List out;
+  out["lamseq"] = cv_nbfar.lamseq;
+  out["dev"] = cv_nbfar.dev;
+  out["sdcal"] = cv_nbfar.sdcal;
+  out["tec"] = cv_nbfar.tec;
+  return out;
+}
 
 

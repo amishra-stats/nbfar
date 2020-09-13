@@ -45,7 +45,7 @@ nbfar_control <- function(maxit = 5000, epsilon = 1e-6,
 #' @useDynLib nbfar
 #' @import magrittr
 #' @importFrom MASS glm.nb
-#' @importFrom stats glm.control rnorm offset
+#' @importFrom stats glm.control rnorm offset coef
 nbCol <- function(Y, X0, ofset, naind) {
   q  <- ncol(Y)
   PHI <- rep(0, q)
@@ -354,15 +354,15 @@ nbrrr <- function(Yt, X, maxrank = 10,
       misind <- any(naind2 == 0) + 0
       Ytr[is.na(Ytr)] <- 0
       # tryCatch({
-        fitT[[ifold]] <- nbrrr_cpp(Ytr, X0, k, cIndex, ofset,
-                                   Z0,  PHI0, control,
-                                   misind, naind2)
-        # compute test sample error
-        tem  <- nbrrr_likelihood(Yte, fitT[[ifold]]$mu, fitT[[ifold]]$eta,
-                                 fitT[[ifold]]$PHI, (!is.na(Yte)) + 0)
-        dev[ifold, k] = tem[1];
-        sdcal[ifold, k] = tem[2];
-        tec[ifold] <- tem[3];
+      fitT[[ifold]] <- nbrrr_cpp(Ytr, X0, k, cIndex, ofset,
+                                 Z0,  PHI0, control,
+                                 misind, naind2)
+      # compute test sample error
+      tem  <- nbrrr_likelihood(Yte, fitT[[ifold]]$mu, fitT[[ifold]]$eta,
+                               fitT[[ifold]]$PHI, (!is.na(Yte)) + 0)
+      dev[ifold, k] = tem[1];
+      sdcal[ifold, k] = tem[2];
+      tec[ifold] <- tem[3];
       # }, error=function(e) print("nbrrr execution issue!") )
 
     }
@@ -466,6 +466,7 @@ nbZeroSol <- function(Y, X0, c_index, ofset, naind) {
 #' @param control a list of internal parameters controlling the model fitting
 #' @param nfold number of folds in k-fold crossvalidation
 #' @param PATH TRUE/FALSE for generating solution path of sequential estimate after cross-validation step
+#' @param nthread number of thread to be used for parallelization
 #' @return
 #'   \item{C}{estimated coefficient matrix; based on GIC}
 #'   \item{Z}{estimated control variable coefficient matrix}
@@ -475,6 +476,7 @@ nbZeroSol <- function(Y, X0, c_index, ofset, naind) {
 #'   \item{V}{estimated V matrix (factor loadings)}
 #' @export
 #' @useDynLib nbfar
+#' @importFrom RcppParallel RcppParallelLibs setThreadOptions
 #' @examples
 #' \donttest{
 #' ## Model specification:
@@ -542,7 +544,7 @@ nbZeroSol <- function(Y, X0, c_index, ofset, naind) {
 #' }
 nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
                   ofset = NULL, control = list(), nfold = 5,
-                  PATH = FALSE) {
+                  PATH = FALSE, nthread = 1) {
   cat("Initializing...", "\n")
   n <- nrow(Yt)
   p <- ncol(X)
@@ -612,74 +614,39 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
     cat(xx$D, '\n')
     cat("Cross validation:", k, "\n")
 
-    # ## ttest
-    # fit.layer <- nbfar_cpp(Yf2,X0, nlam = nlambda, cindex = cIndex,
-    #                        ofset = ofset, initw = initW,
-    #                        Dini = xx$D, Zini = Z0, PhiIni = Phi0,
-    #                        Uini = xx$U, Vini = xx$V, lmax = lambda.max,
-    #                        control,misind, naind,zerosol, control$maxit,
-    #                        control$epsilon)
 
-
+    # tic()
     ## store the deviance of the test data
-    dev <- matrix(NA, nfold, nlambda)
-    sdcal <- matrix(NA, nfold, nlambda)
-    tec <- rep(0, nfold)
-    ID <- rep(1:nfold, len = N.nna)
-    ID <- sample(ID, N.nna, replace = FALSE)
-    fitT <- vector("list", nfold)
-
-    for (ifold in 1:nfold) { # ifold=5
-      cat('Fold ', ifold, '\n')
-      ind.test <- ind.nna[which(ID == ifold)]
-      Yte <- Y
-      Yte[-ind.test] <- NA
-      Ytr <- Y
-      Ytr[ind.test] <- NA
-
-      naind <- (!is.na(Ytr)) + 0 # matrix(1,n,q)
-      misind <- any(naind == 0) + 0
-      Ytr[is.na(Ytr)] <- 0
-      # zerosol <- nbZeroSol(Ytr, X0, c_index= cIndex, ofset, naind)
-      # compromised convergence criteria for enhanced speed
-      control_cv <- control; #control_cv$lamMinFac = 1e-10;
-      # control_cv$spU  = 0.8; control_cv$spV = 0.9
-      fitT[[ifold]] <- nbfar_cpp(Ytr, X0,
-                                 nlam = nlambda,
-                                 cindex = cIndex,
-                                 ofset = ofset, initw = initW,
-                                 Dini = xx$D, Zini = Z0, PhiIni = Phi0,
-                                 Uini = xx$U, Vini = xx$V,
-                                 lmax = lambda.max,
-                                 control_cv, misind,
-                                 naind, zerosol,
-                                 control$maxit, epsilon = control$epsilon)
-      fitF <- fitT[[ifold]]
-
-      for (im in 1:fitF$nkpath) {
-        lam <- fitF$lamKpath[im, 1]
-        insel <- which(fitF$lamseq == lam)
-        mu.test <- fitF$mukpath[, , im]; mu.test[-ind.test] <- NA
-        eta.test <- fitF$etapath[, , im]; eta.test[-ind.test] <- NA
-        tttval <- nbrrr_likelihood(Yte, mu.test, eta.test, fitF$phipath[, im],
-                                   (!is.na(Yte)) + 0)
-        dev[ifold, insel] <- tttval[1]
-        sdcal[ifold, insel] <- tttval[2]
-        tec[ifold] <- tttval[3]
-      }
+    if (nthread > 1){
+      outcv = cv_nbfar_par(Y, X0, nlam = nlambda, cindex = cIndex,
+                           ofset = ofset, initw = initW,
+                           Zini = Z0, PhiIni = Phi0,
+                           xx = xx,
+                           lmax = lambda.max, control = control,
+                           zerosol,
+                           control$maxit, epsilon = control$epsilon,
+                           nfold = 5);
+    } else {
+      outcv = cv_nbfar_cpp(Y, X0, nlam = nlambda, cindex = cIndex,
+                           ofset = ofset, initw = initW,
+                           Zini = Z0, PhiIni = Phi0,
+                           xx = xx,
+                           lmax = lambda.max, control = control,
+                           zerosol,
+                           control$maxit, epsilon = control$epsilon,
+                           nfold = 5);
     }
-
-    fit.nfold[[k]] <- fitT
-    dev.mean <- colMeans(dev, na.rm = FALSE)
+    # toc()
+    dev.mean <- colMeans(outcv$dev, na.rm = FALSE)
     l.mean <- which.max(dev.mean)
-    lamS <- fitF$lamseq[l.mean]
+    lamS <- outcv$lamseq[l.mean]
 
 
     Yf <- Y
     naind <- (!is.na(Yf)) + 0 # matrix(1,n,q)
     misind <- any(naind == 0) + 0
     Yf[is.na(Yf)] <- 0
-    save(list=ls(),file= 'aditya.rda')
+    # save(list=ls(),file= 'aditya.rda')
     # zerosol <- nbZeroSol(Yf, X0, c_index= cIndex, ofset, naind)
     if ( PATH ) {
       control1 <- nbfar_control(lamMinFac = 1e-10, spU  = 0.9, spV = 0.9)
@@ -724,8 +691,8 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
 
     ## Same as before
     fit.nlayer[[k]]$initw <- initW
-    fit.nlayer[[k]]$lamseq <- fitF$lamseq   ## save sequence of lambda path
-    fit.nlayer[[k]]$dev <- dev
+    fit.nlayer[[k]]$lamseq <- outcv$lamseq   ## save sequence of lambda path
+    fit.nlayer[[k]]$dev <- outcv$dev
     fit.nlayer[[k]]$lamS <- lamS
     U[, k] <- fit.layer$ukpath[, l.mean]
     V[, k] <- fit.layer$vkpath[, l.mean]
@@ -762,5 +729,59 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
 }
 
 
+
+
+
+# ## store the deviance of the test data
+# dev <- matrix(NA, nfold, nlambda)
+# sdcal <- matrix(NA, nfold, nlambda)
+# tec <- rep(0, nfold)
+# ID <- rep(1:nfold, len = N.nna)
+# ID <- sample(ID, N.nna, replace = FALSE)
+# fitT <- vector("list", nfold)
+#
+# for (ifold in 1:nfold) { # ifold=5
+#   ind.test <- ind.nna[which(ID == ifold)]
+#   Yte <- Y
+#   Yte[-ind.test] <- NA
+#   Ytr <- Y
+#   Ytr[ind.test] <- NA
+#
+#   naind <- (!is.na(Ytr)) + 0 # matrix(1,n,q)
+#   misind <- any(naind == 0) + 0
+#   Ytr[is.na(Ytr)] <- 0
+#   # zerosol <- nbZeroSol(Ytr, X0, c_index= cIndex, ofset, naind)
+#   # compromised convergence criteria for enhanced speed
+#   control_cv <- control; #control_cv$lamMinFac = 1e-10;
+#   # control_cv$spU  = 0.8; control_cv$spV = 0.9
+#   cat('Fold ', ifold, '\n')
+#   tic()
+#   fitT[[ifold]] <- nbfar_cpp(Ytr, X0,
+#                              nlam = nlambda,
+#                              cindex = cIndex,
+#                              ofset = ofset, initw = initW,
+#                              Dini = xx$D, Zini = Z0, PhiIni = Phi0,
+#                              Uini = xx$U, Vini = xx$V,
+#                              lmax = lambda.max,
+#                              control_cv, misind,
+#                              naind, zerosol,
+#                              control$maxit, epsilon = control$epsilon)
+#   fitF <- fitT[[ifold]]
+#   a = toc()
+#   cat('Fold ', ifold, 'done ', a$toc -a$tic,'\n')
+#
+#   for (im in 1:fitF$nkpath) {
+#     lam <- fitF$lamKpath[im, 1]
+#     insel <- which(fitF$lamseq == lam)
+#     mu.test <- fitF$mukpath[, , im]; mu.test[-ind.test] <- NA
+#     eta.test <- fitF$etapath[, , im]; eta.test[-ind.test] <- NA
+#     tttval <- nbrrr_likelihood(Yte, mu.test, eta.test, fitF$phipath[, im],
+#                                (!is.na(Yte)) + 0)
+#     dev[ifold, insel] <- tttval[1]
+#     sdcal[ifold, insel] <- tttval[2]
+#     tec[ifold] <- tttval[3]
+#   }
+# }
+# fit.nfold[[k]] <- fitT
 
 
