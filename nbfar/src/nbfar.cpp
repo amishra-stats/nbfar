@@ -59,10 +59,10 @@ double nb_dev(arma::mat Y, arma::mat MU, arma::vec Phi,
 //  sanity chheck  all(get_sc(X,Y) == X*Y[,1])
 // [[Rcpp::export]]
 double get_sc(arma::mat X, arma::mat Y){
-  int iter; Y = Y + 1;
+  int iter, q = Y.n_cols; Y = Y + 1;
   Y.elem(find_nonfinite(Y)).zeros();
   arma::vec tem(Y.n_cols);
-  for(iter = 0; iter < Y.n_cols; iter++){
+  for(iter = 0; iter < q; iter++){
     tem(iter) = norm(X.t()*(X.each_col()%Y.col(iter)),2);
   }
   return(tem.max()/2.0);
@@ -130,8 +130,8 @@ arma::vec update_mu_phi(arma::mat Y, arma::mat mu, arma::vec Phi){
   arma::vec tem,a,b;
   arma::mat T1_g = zeros(size(Y));
   arma::mat T1_h = zeros(size(Y));
-  int i,j,k;
-  for(i=0; i < Y.n_cols; i++){
+  int i,j,k,q = Y.n_cols;
+  for(i=0; i < q; i++){
     k = max(Y.col(i)); tem = ones(k+1);
     tem.subvec(1,k) = linspace(0,k-1,k) + Phi(i);
     a = 1/tem; b = a/tem; a(0) = 0; b(0) = 0;
@@ -185,8 +185,8 @@ arma::vec update_mu_alpha(const arma::mat &Y, const arma::mat &mu,
   arma::vec tem,a,b;
   arma::mat T1_g = zeros(size(Y));
   arma::mat T1_h = zeros(size(Y));
-  int i,j,k;
-  for(i=0; i < Y.n_cols; i++){
+  int i,j,k,q = Y.n_cols;
+  for(i=0; i < q; i++){
     k = max(Y.col(i)); tem = ones(k+1);
     tem.subvec(1,k) = linspace(0,k-1,k)/(linspace(0,k-1,k)*alpha(i) + 1);
     a = tem; b = pow(tem,2); a(0) = 0; b(0) = 0;
@@ -256,8 +256,8 @@ arma::vec nbrrr_likelihood(const arma::mat &Y, const arma::mat &MU,
   // compute T1
   arma::vec tem,a, out(3);
   arma::mat T1 = zeros(size(Y));
-  int i,j,k;
-  for(i=0; i < Y.n_cols; i++){
+  int i,j,k, q = Y.n_cols;
+  for(i=0; i < q; i++){
     k = max(Y.col(i)); tem = ones(k+1);
     tem.subvec(1,k) = log(linspace(0,k-1,k) + Phi(i));
     a = tem; a(0) = 0;
