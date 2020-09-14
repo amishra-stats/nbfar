@@ -374,7 +374,9 @@ nbrrr <- function(Yt, X, maxrank = 10,
 
   # compute model estimate for the selected rank
   misind <- any(naind == 0) + 0
-  control_nbrr <- nbfar_control(initmaxit = 5000, initepsilon = 1e-7)
+  control_nbrr <- nbfar_control(initmaxit = 5000, initepsilon = 1e-7,
+                                objI = 1)
+  Y[is.na(Y)] <- 0
   out <- nbrrr_cpp(Y, X0, rank_sel, cIndex, ofset, Z0,  PHI0,
                    control_nbrr, misind, naind)
   out$cv.err <- dev
@@ -384,7 +386,8 @@ nbrrr <- function(Yt, X, maxrank = 10,
   nkran <- sum(svdxc$d > 1e-07)
   out$V <- svdxc$v[, 1:nkran, drop = FALSE]
   out$D <- svdxc$d[1:nkran] / sqrt(n)
-  out$U <- out$C[-cIndex, ] %*% out$V %*% diag(1 / out$D, nrow = nkran, ncol = nkran)
+  out$U <- out$C[-cIndex, ] %*% out$V %*%
+    diag(1 / out$D, nrow = nkran, ncol = nkran)
   return(out)
 }
 

@@ -47,6 +47,7 @@ double nb_dev(arma::mat Y, arma::mat MU, arma::vec Phi,
   arma::mat T1 = Y.each_row() + Phi.t();
   T1 = Y%log(Y+(Y==0))-Y%log(MU) - T1%(log(T1) - log(MU.each_row() + Phi.t()));
   return(2*accu(T1%naind));
+  // return(2*accu(T1.elem(find(naind ==1)) ));
 }
 
 
@@ -59,6 +60,7 @@ double nb_dev(arma::mat Y, arma::mat MU, arma::vec Phi,
 // [[Rcpp::export]]
 double get_sc(arma::mat X, arma::mat Y){
   int iter; Y = Y + 1;
+  Y.elem(find_nonfinite(Y)).zeros();
   arma::vec tem(Y.n_cols);
   for(iter = 0; iter < Y.n_cols; iter++){
     tem(iter) = norm(X.t()*(X.each_col()%Y.col(iter)),2);
