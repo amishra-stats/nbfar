@@ -136,7 +136,7 @@ arma::vec update_mu_phi(arma::mat Y, arma::mat mu, arma::vec Phi){
     tem.subvec(1,k) = linspace(0,k-1,k) + Phi(i);
     a = 1/tem; b = a/tem; a(0) = 0; b(0) = 0;
     a = cumsum(a); b = -1*cumsum(b);
-    for( j=0; j < Y.n_rows; j++){
+    for( j=0; j < (int) Y.n_rows; j++){
       T1_g(j,i) = a(Y(j,i));
       T1_h(j,i) = b(Y(j,i));
     }
@@ -192,7 +192,7 @@ arma::vec update_mu_alpha(const arma::mat &Y, const arma::mat &mu,
     a = tem; b = pow(tem,2); a(0) = 0; b(0) = 0;
     a = cumsum(a); b = -1*cumsum(b);
 
-    for( j=0; j < Y.n_rows; j++){
+    for( j=0; j < (int) Y.n_rows; j++){
       T1_g(j,i) = a(Y(j,i));
       T1_h(j,i) = b(Y(j,i));
     }
@@ -262,7 +262,7 @@ arma::vec nbrrr_likelihood(const arma::mat &Y, const arma::mat &MU,
     tem.subvec(1,k) = log(linspace(0,k-1,k) + Phi(i));
     a = tem; a(0) = 0;
     a = cumsum(a);
-    for( j=0; j < Y.n_rows; j++)
+    for( j=0; j < (int) Y.n_rows; j++)
       T1(j,i) = a(Y(j,i));
   }
 
