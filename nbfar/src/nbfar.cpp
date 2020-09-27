@@ -581,9 +581,9 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
   // defining auxilary variable for the loop
   int iter;
   double svk=0,suk=0,m1=1,lam,elp,fac,sv,su;
-  double de_temp;
-  arma::mat C_temp,MU_temp;
-  arma::vec Phi_temp, ue_temp, ve_temp;
+  // double de_temp;
+  // arma::mat C_temp,MU_temp;
+  // arma::vec Phi_temp, ue_temp, ve_temp;
   arma::vec diffobj, obj, obj2, plfacv, plfacu,PhiI, relerror = zeros(nlam);
   arma::vec vest, uest, maxitc = zeros(nlam),convval = zeros(nlam), xtyv, xtyu;
   arma::mat facW = alp*wd*(wu*wv.t()),facL;
@@ -617,10 +617,10 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
 
     timer.tic();
     for(iter = 1; iter < maxit; iter++){
-      C_temp = C;
-      ue_temp = ue; ve_temp = ve; de_temp = de;
-      MU_temp = MU;
-      Phi_temp = Phi;
+      // C_temp = C;
+      // ue_temp = ue; ve_temp = ve; de_temp = de;
+      // MU_temp = MU;
+      // Phi_temp = Phi;
       // if(msind == 1) MU.elem(t4).zeros(); /////////
 
 
