@@ -510,7 +510,7 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
   arma::vec tem_v;
 
   // Extract parameter
-  bool converged=false;
+  // bool converged=false;
   int pt = X0.n_cols, q = Y.n_cols, n = Y.n_rows,ii=0;
   int p = pt - cindex.n_elem, eea = 0;
   int cObj = control["objI"];
@@ -695,7 +695,7 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
       diffobj(iter) = abs((obj(iter) - obj(iter- 1)))/(abs(obj(iter)) + 0.1);
       relerror(ii) = diffobj(iter);
       if (abs(diffobj(iter)) < epsilon ) {
-        converged = true;
+        // converged = true;
         convval(ii) = 1;
         break;
       }
