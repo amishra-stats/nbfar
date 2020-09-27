@@ -424,18 +424,44 @@ lmax_nb = function(Y, X,offset){
 #' @importFrom stats glm.control rnorm
 nbZeroSol <- function(Y, X0, c_index, ofset, naind) {
   q  <- ncol(Y)
-  PHI <- rep(0, q)
+  PHI <- rep(1, q)
   Cini <- matrix(0, nrow = length(c_index), ncol = q)
   for (i in 1:q) {
-    qqq <- naind[,i] == 1
-    ft <- MASS::glm.nb(Y[qqq, i]~X0[qqq, c_index,drop = FALSE] + offset(ofset[qqq, i]) -1,
-                       control = glm.control(maxit = 10000, epsilon = 1e-3),
-                       init.theta = MASS::glm.nb(Y[qqq, i]~1+ offset(ofset[qqq, i]))$theta)
-    Cini[, i] <- ft$coefficients
-    PHI[i] <- ft$theta
+    tryCatch({
+      qqq <- naind[,i] == 1
+      xx <- MASS::glm.nb(Y[qqq, i]~1)
+      ft <- MASS::glm.nb(Y[qqq, i]~X0[qqq, c_index,drop = FALSE] +
+                           offset(ofset[qqq, i]) -1,
+                         control = glm.control(maxit = 1000, epsilon = 1e-3,
+                                               trace = FALSE),
+                         init.theta = xx$theta)
+      Cini[, i] <- ft$coefficients
+      PHI[i] <- ft$theta
+    }, error = function(error_message) {
+      return(NA)
+    })
   }
   return(list(Z = Cini, PHI = PHI))
 }
+# nbZeroSol <- function(Y, X0, c_index, ofset, naind) {
+#   q  <- ncol(Y)
+#   PHI <- rep(0, q)
+#   Cini <- matrix(0, nrow = length(c_index), ncol = q)
+#   for (i in 1:q) {
+#     qqq <- naind[,i] == 1
+#     xx <- MASS::glm.nb(Y[qqq, i]~1,
+#                        control = glm.control(maxit = 10000, epsilon = 1e-3,
+#                                              trace = FALSE))
+#     ft <- MASS::glm.nb(Y[qqq, i]~X0[qqq, c_index,drop = FALSE] +
+#                          offset(ofset[qqq, i]) -1,
+#                        control = glm.control(maxit = 10000, epsilon = 1e-3,
+#                                              trace = FALSE),
+#                        init.theta = xx$theta)
+#     Cini[, i] <- ft$coefficients
+#     PHI[i] <- ft$theta
+#   }
+#   return(list(Z = Cini, PHI = PHI))
+# }
 
 
 
