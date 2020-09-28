@@ -379,6 +379,8 @@ nbrrr <- function(Yt, X, maxrank = 10,
   Y[is.na(Y)] <- 0
   out <- nbrrr_cpp(Y, X0, rank_sel, cIndex, ofset, Z0,  PHI0,
                    control_nbrr, misind, naind)
+  # save(list=ls(),file= 'aditya.rda')
+
   out$cv.err <- dev
   XC <- X0[, -cIndex] %*% out$C[-cIndex, ]
   out$Z <- matrix(out$C[cIndex, ], ncol = q)
