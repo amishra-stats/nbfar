@@ -624,6 +624,7 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
   for (k in 1:maxrank) { # desired rank extraction # k = 1
     cat("Initializing unit-rank unit", k, "\n")
     control_nbrrr <- control # nbfar_control()
+    control_nbrrr$objI <- 1
     xx <- nbrrr_cpp(Yf2, X0, 1, cIndex, ofset,
                     Z,  PHI, control_nbrrr,
                     misind22, naind22)
