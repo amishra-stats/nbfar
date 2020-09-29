@@ -320,10 +320,12 @@ nbrrr <- function(Yt, X, maxrank = 10,
   misind <- any(naind == 0) + 0
   if (misind == 1) Yin[is.na(Y)] <- 0
   # init_model <- nbCol(Yin, X0, ofset, naind)
-  init_model <- nbZeroSol(Yin, X0, cIndex, ofset, naind)
+  init_model <- nbColSp(Y, X0, ofset, cIndex,  naind)
+  # init_model <- nbZeroSol(Yin, X0, cIndex, ofset, naind)
   # Z0 <- init_model$C[cIndex,, drop = FALSE]
   Z0 <- init_model$Z
   PHI0 <- init_model$PHI
+  C0 <- init_model$C
 
   ## Begin exclusive extraction procedure
   N.nna <- sum(!is.na(Y))
@@ -343,7 +345,7 @@ nbrrr <- function(Yt, X, maxrank = 10,
     cat('Cross-validation for rank r: ', k, '\n')
     fitT <- vector("list", nfold)
     for (ifold in 1:nfold) { # ifold=3; k = 3
-      cat('Fold ', ifold, '\n')
+      # cat('Fold ', ifold, '\n')
       ind.test <- ind.nna[which(ID == ifold)]
       Yte <- Y
       Yte[-ind.test] <- NA
@@ -355,11 +357,18 @@ nbrrr <- function(Yt, X, maxrank = 10,
       Ytr[is.na(Ytr)] <- 0
       # tryCatch({
       fitT[[ifold]] <- nbrrr_cpp(Ytr, X0, k, cIndex, ofset,
-                                 Z0,  PHI0, control,
+                                 Z0,  PHI0, C0, control,
                                  misind, naind2)
+
+      cat('Fold ', ifold, ': [Error,iteration] = [',
+          with(fitT[[ifold]],diffobj[maxit]),
+          with(fitT[[ifold]],maxit), ']', '\n')
+
       # compute test sample error
       tem  <- nbrrr_likelihood(Yte, fitT[[ifold]]$mu, fitT[[ifold]]$eta,
                                fitT[[ifold]]$PHI, (!is.na(Yte)) + 0)
+
+
       dev[ifold, k] = tem[1];
       sdcal[ifold, k] = tem[2];
       tec[ifold] <- tem[3];
@@ -377,7 +386,7 @@ nbrrr <- function(Yt, X, maxrank = 10,
   control_nbrr <- nbfar_control(initmaxit = 5000, initepsilon = 1e-7,
                                 objI = 1)
   Y[is.na(Y)] <- 0
-  out <- nbrrr_cpp(Y, X0, rank_sel, cIndex, ofset, Z0,  PHI0,
+  out <- nbrrr_cpp(Y, X0, rank_sel, cIndex, ofset, Z0,  PHI0, C0,
                    control_nbrr, misind, naind)
   # save(list=ls(),file= 'aditya.rda')
 
@@ -395,6 +404,35 @@ nbrrr <- function(Yt, X, maxrank = 10,
 
 
 
+#' @importFrom mpath cv.glmregNB
+nbColSp <- function(Y, X0, ofset, cindex,  naind) {
+  q  <- ncol(Y)
+  PHI <- rep(1, q)
+  Cini <- matrix(0, nrow = ncol(X0), ncol = q)
+  pf = rep(1, ncol(X0)); pf[cindex] <- 0
+  for (i in 1:q) {
+    # print(i)
+    tryCatch({
+      qqq <- naind[,i] == 1
+      dt = data.frame(Y= Y[qqq, i], X = X0[qqq, -1])
+      ft <- mpath::cv.glmregNB(Y~., data = dt, maxit = 1000, nfolds = 5,
+                               offset = ofset[qqq, i],
+                               penalty.factor  = pf[-1],
+                               lambda = seq(0.001, 1, by=0.1),
+                               # init.theta = MASS::glm.nb(Y[qqq, i]~1)$theta,
+                               alpha = 0.95,
+                               rescale = T, standardize = T, plot.it = FALSE)
+      tem = coef(ft); tem[is.na(tem)] <- 0
+      Cini[, i] <- tem
+      PHI[i] <- ft$fit$theta[ft$lambda.which]
+    }, error = function(error_message) {
+      return(NA)
+    })
+  }
+  return(list(Z = Cini[cindex,,drop = FALSE],
+              C = Cini[-cindex,,drop = FALSE],
+              PHI = PHI))
+}
 
 #
 # Get lambda max for the negattive binomial disttribution
@@ -604,31 +642,34 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
 
   if (is.null(ofset)) ofset <- matrix(0, nrow = n, ncol = q)
   naind <- (!is.na(Y)) + 0
-  aft <- nbZeroSol(Y, X0, c_index = cIndex, ofset, naind)
+  # aft <- nbZeroSol(Y, X0, c_index = cIndex, ofset, naind)
+  # Z <- aft$Z
+  # PHI <- aft$PHI
+
+  aft <- nbColSp(Y, X0, ofset, cIndex,  naind)
   Z <- aft$Z
   PHI <- aft$PHI
+  XC <- X0[, -cIndex] %*% aft$C; svdxc <- svd(XC)
+  Vk <- svdxc$v[, 1:maxrank, drop = FALSE]
+  Dk <- svdxc$d[1:maxrank] / sqrt(n)
+  Uk <- aft$C %*% Vk %*% diag(1 / Dk, nrow = maxrank, ncol = maxrank)
 
-
-  N.nna <- sum(!is.na(Y))
-  ind.nna <- which(!is.na(Y))
   Yf2 <- Y
   naind22 <- (!is.na(Yf2)) + 0
   misind22 <- any(naind22 == 0) + 0
   Yf2[is.na(Yf2)] <- 0
-  fit.nlayer <- fit.nfold <- vector("list", maxrank)
-
-
-
+  fit.nlayer <- vector("list", maxrank)
 
   # Implementation of k-fold cross validation:
   for (k in 1:maxrank) { # desired rank extraction # k = 1
-    cat("Initializing unit-rank unit", k, "\n")
+    # cat("Initializing unit-rank unit", k, "\n")
     control_nbrrr <- control # nbfar_control()
     control_nbrrr$objI <- 1
     xx <- nbrrr_cpp(Yf2, X0, 1, cIndex, ofset,
-                    Z,  PHI, control_nbrrr,
+                    Z,  PHI, Dk[k] * tcrossprod(Uk[, k], Vk[, k]),
+                    control_nbrrr,
                     misind22, naind22)
-    # print(c(xx$maxit,xx$converge,ndev))
+
     XC <- X0[, -cIndex] %*% xx$C[-cIndex, ]
     Z0 <- matrix(xx$C[cIndex, ], ncol = q)
     Phi0 <- xx$PHI
@@ -643,13 +684,12 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
       wv = abs(xx$V)^-control$gamma0)
     lambda.max <- lmax_nb(Y, X,ofset)
     zerosol <- nbZeroSol(Yf2, X0, c_index = cIndex, ofset, naind22)
-    cat(xx$D, '\n')
+    cat("Initializing unit-rank unit ", k, ': [Error,iteration,D] = [',
+        with(xx,diffobj[maxit]), xx$maxit, xx$D, ']', '\n')
     cat("Cross validation:", k, "\n")
 
-
-    # tic()
     ## store the deviance of the test data
-    if (nthread > 1){
+    if (nthread > 1) {
       outcv = cv_nbfar_par(Y, X0, nlam = nlambda, cindex = cIndex,
                            ofset = ofset, initw = initW,
                            Zini = Z0, PhiIni = Phi0,
@@ -657,7 +697,7 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
                            lmax = lambda.max, control = control,
                            zerosol,
                            control$maxit, epsilon = control$epsilon,
-                           nfold = 5);
+                           nfold = nfold);
     } else {
       outcv = cv_nbfar_cpp(Y, X0, nlam = nlambda, cindex = cIndex,
                            ofset = ofset, initw = initW,
@@ -666,7 +706,7 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
                            lmax = lambda.max, control = control,
                            zerosol,
                            control$maxit, epsilon = control$epsilon,
-                           nfold = 5);
+                           nfold = nfold);
     }
     # toc()
     dev.mean <- colMeans(outcv$dev, na.rm = FALSE)

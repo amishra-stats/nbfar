@@ -47,7 +47,7 @@ double nb_dev(arma::mat Y, arma::mat MU, arma::vec Phi,
   arma::mat T1 = Y.each_row() + Phi.t();
   T1 = Y%log(Y+(Y==0))-Y%log(MU) - T1%(log(T1) - log(MU.each_row() + Phi.t()));
   T1.elem( find_nonfinite(T1) ).zeros();
-  return(2*accu(T1%naind));
+  return(2*accu(T1%naind)/accu(naind));
   // return(2*accu(T1.elem(find(naind ==1)) ));
 }
 
@@ -326,6 +326,7 @@ arma::uvec mySdiff(arma::uvec x, arma::uvec y){
 // [[Rcpp::export]]
 Rcpp::List nbrrr_cpp(arma::mat Y, arma::mat X0, int rnk, arma::vec cindex,
                      arma::mat ofset,  arma::mat  Zini, arma::vec PhiIni,
+                     arma::mat  Cini,
                      Rcpp::List control, int msind, arma::mat naind){
   bool converged=false;
   int pt = X0.n_cols, q = Y.n_cols,  maxit = control["initmaxit"];
@@ -347,7 +348,7 @@ Rcpp::List nbrrr_cpp(arma::mat Y, arma::mat X0, int rnk, arma::vec cindex,
 
 
   arma::mat C = zeros<mat>(pt,q);
-  C.rows(cIndex) = Zini; C = C;
+  C.rows(cIndex) = Zini; C.rows(cIndexC)  = Cini;
   arma::vec Phi = PhiIni, Phi2 = 1/PhiIni;
   rnk = rnk-1; // adjust input rank to extract
 

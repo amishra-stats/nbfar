@@ -33,8 +33,8 @@ mySdiff <- function(x, y) {
     .Call('_nbfar_mySdiff', PACKAGE = 'nbfar', x, y)
 }
 
-nbrrr_cpp <- function(Y, X0, rnk, cindex, ofset, Zini, PhiIni, control, msind, naind) {
-    .Call('_nbfar_nbrrr_cpp', PACKAGE = 'nbfar', Y, X0, rnk, cindex, ofset, Zini, PhiIni, control, msind, naind)
+nbrrr_cpp <- function(Y, X0, rnk, cindex, ofset, Zini, PhiIni, Cini, control, msind, naind) {
+    .Call('_nbfar_nbrrr_cpp', PACKAGE = 'nbfar', Y, X0, rnk, cindex, ofset, Zini, PhiIni, Cini, control, msind, naind)
 }
 
 get_sv1 <- function(xyx, ue, q) {

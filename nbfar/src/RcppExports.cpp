@@ -113,8 +113,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // nbrrr_cpp
-Rcpp::List nbrrr_cpp(arma::mat Y, arma::mat X0, int rnk, arma::vec cindex, arma::mat ofset, arma::mat Zini, arma::vec PhiIni, Rcpp::List control, int msind, arma::mat naind);
-RcppExport SEXP _nbfar_nbrrr_cpp(SEXP YSEXP, SEXP X0SEXP, SEXP rnkSEXP, SEXP cindexSEXP, SEXP ofsetSEXP, SEXP ZiniSEXP, SEXP PhiIniSEXP, SEXP controlSEXP, SEXP msindSEXP, SEXP naindSEXP) {
+Rcpp::List nbrrr_cpp(arma::mat Y, arma::mat X0, int rnk, arma::vec cindex, arma::mat ofset, arma::mat Zini, arma::vec PhiIni, arma::mat Cini, Rcpp::List control, int msind, arma::mat naind);
+RcppExport SEXP _nbfar_nbrrr_cpp(SEXP YSEXP, SEXP X0SEXP, SEXP rnkSEXP, SEXP cindexSEXP, SEXP ofsetSEXP, SEXP ZiniSEXP, SEXP PhiIniSEXP, SEXP CiniSEXP, SEXP controlSEXP, SEXP msindSEXP, SEXP naindSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -125,10 +125,11 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat >::type ofset(ofsetSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type Zini(ZiniSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type PhiIni(PhiIniSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Cini(CiniSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type control(controlSEXP);
     Rcpp::traits::input_parameter< int >::type msind(msindSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type naind(naindSEXP);
-    rcpp_result_gen = Rcpp::wrap(nbrrr_cpp(Y, X0, rnk, cindex, ofset, Zini, PhiIni, control, msind, naind));
+    rcpp_result_gen = Rcpp::wrap(nbrrr_cpp(Y, X0, rnk, cindex, ofset, Zini, PhiIni, Cini, control, msind, naind));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -282,7 +283,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_nbfar_update_mu_alpha", (DL_FUNC) &_nbfar_update_mu_alpha, 4},
     {"_nbfar_nbrrr_likelihood", (DL_FUNC) &_nbfar_nbrrr_likelihood, 5},
     {"_nbfar_mySdiff", (DL_FUNC) &_nbfar_mySdiff, 2},
-    {"_nbfar_nbrrr_cpp", (DL_FUNC) &_nbfar_nbrrr_cpp, 10},
+    {"_nbfar_nbrrr_cpp", (DL_FUNC) &_nbfar_nbrrr_cpp, 11},
     {"_nbfar_get_sv1", (DL_FUNC) &_nbfar_get_sv1, 3},
     {"_nbfar_get_sv", (DL_FUNC) &_nbfar_get_sv, 4},
     {"_nbfar_softThres", (DL_FUNC) &_nbfar_softThres, 2},

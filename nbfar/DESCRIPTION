@@ -7,7 +7,7 @@ Author: Aditya Mishra [aut, cre], Christian Muller [aut]
 Maintainer: Aditya Mishra <amishra@flatironinstitute.org>
 Description: Sequential  estimation of  low-rank and sparse coefficient matrix in the negative binomial co-sparse factor regression.
 Depends: R (>= 3.4), stats, utils
-Imports: Rcpp (>= 0.12.9), MASS, magrittr, rrpack, glmnet, RcppParallel
+Imports: Rcpp (>= 0.12.9), MASS, magrittr, rrpack, glmnet, RcppParallel, mpath
 License: GPL (>= 3.0)
 LazyData: TRUE
 LinkingTo: Rcpp, RcppArmadillo, RcppParallel
