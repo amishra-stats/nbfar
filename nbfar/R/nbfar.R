@@ -411,17 +411,18 @@ nbColSp <- function(Y, X0, ofset, cindex,  naind) {
   Cini <- matrix(0, nrow = ncol(X0), ncol = q)
   pf = rep(1, ncol(X0)); pf[cindex] <- 0
   for (i in 1:q) {
-    # print(i)
+    if ((i %% 5) == 0 ) cat('Initialization upto column index: ',i,'\n')
     tryCatch({
       qqq <- naind[,i] == 1
-      dt = data.frame(Y= Y[qqq, i], X = X0[qqq, -1])
-      ft <- mpath::cv.glmregNB(Y~., data = dt, maxit = 1000, nfolds = 5,
-                               offset = ofset[qqq, i],
-                               penalty.factor  = pf[-1],
-                               lambda = seq(0.001, 1, by=0.1),
+      dt = data.frame(y = Y[qqq, i], X = X0[qqq, -1])
+      ft <- mpath::cv.glmregNB(y~., data = dt, maxit = 50, nfolds = 5,
+                               offset = ofset[qqq, i], thresh = 1e-1,
+                               penalty.factor  = pf[-1],maxit.theta = 10,
+                               lambda = seq(0.001, 1, length.out = 5),
                                # init.theta = MASS::glm.nb(Y[qqq, i]~1)$theta,
-                               alpha = 0.95,
-                               rescale = T, standardize = T, plot.it = FALSE)
+                               alpha = 1.0,
+                               rescale = FALSE, standardize = FALSE,
+                               plot.it = FALSE)
       tem = coef(ft); tem[is.na(tem)] <- 0
       Cini[, i] <- tem
       PHI[i] <- ft$fit$theta[ft$lambda.which]
