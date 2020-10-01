@@ -749,8 +749,8 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
       if(svk==0){
         de = 0;ue.zeros(p);ve.zeros(q);
         C.rows(cIndexC) = 0*C.rows(cIndexC);
-        // C.rows(cIndex) = Z00;
-        // Phi = PHI00;
+        C.rows(cIndex) = Z00;
+        Phi = PHI00;
         break;
       } else {
         de = svk;
@@ -772,8 +772,8 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
       if(suk==0){
         de = 0;ue.zeros(p);ve.zeros(q);
         C.rows(cIndexC) = 0*C.rows(cIndexC);
-        // C.rows(cIndex) = Z00;
-        // Phi = PHI00;
+        C.rows(cIndex) = Z00;
+        Phi = PHI00;
         break;
       } else {
         tem_uvec = find(uest);
