@@ -708,6 +708,7 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
   Dk <- svdxc$d[1:maxrank] / sqrt(n)
   Uk <- aft$C %*% Vk %*% diag(1 / Dk, nrow = maxrank, ncol = maxrank)
   cat('Singular values initial:', Dk, '\n')
+  # save(list = ls(), file = 'aditya.rda')
 
   Yf2 <- Y
   naind22 <- (!is.na(Yf2)) + 0
