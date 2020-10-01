@@ -219,6 +219,7 @@ nbfar_sim <- function(U, D, V, n, Xsigma, C0,disp,depth) {
 #' @param ofset offset matrix specified
 #' @param control a list of internal parameters controlling the model fitting
 #' @param nfold number of fold for cross-validation
+#' @param trace checking progress of cross validation error
 #' @return
 #'   \item{C}{estimated coefficient matrix; based on GIC}
 #'   \item{Z}{estimated control variable coefficient matrix}
@@ -295,7 +296,7 @@ nbfar_sim <- function(U, D, V, n, Xsigma, C0,disp,depth) {
 #' }
 nbrrr <- function(Yt, X, maxrank = 10,
                   cIndex = NULL, ofset = NULL,
-                  control = list(), nfold = 5) {
+                  control = list(), nfold = 5, trace = FALSE) {
   cat("Initializing...", "\n")
   n <- nrow(Yt)
   p <- ncol(X)
@@ -326,6 +327,13 @@ nbrrr <- function(Yt, X, maxrank = 10,
   Z0 <- init_model$Z
   PHI0 <- init_model$PHI
   C0 <- init_model$C
+  XC <- X0[, -cIndex] %*% init_model$C; svdxc <- svd(XC)
+  Vk <- svdxc$v[, 1:maxrank, drop = FALSE]
+  Dk <- svdxc$d[1:maxrank] / sqrt(n)
+  Uk <- init_model$C %*% Vk %*%
+    diag(1 / Dk, nrow = maxrank, ncol = maxrank)
+  cat('Singular values inittial:', Dk, '\n')
+
 
   ## Begin exclusive extraction procedure
   N.nna <- sum(!is.na(Y))
@@ -344,6 +352,7 @@ nbrrr <- function(Yt, X, maxrank = 10,
   for (k in 1:maxrank) { # desired rank extraction
     cat('Cross-validation for rank r: ', k, '\n')
     fitT <- vector("list", nfold)
+    # C0 <- Uk[, 1:k] %*% (Dk[1:k]*t(Vk[, 1:k]))
     for (ifold in 1:nfold) { # ifold=3; k = 3
       # cat('Fold ', ifold, '\n')
       ind.test <- ind.nna[which(ID == ifold)]
@@ -356,6 +365,7 @@ nbrrr <- function(Yt, X, maxrank = 10,
       misind <- any(naind2 == 0) + 0
       Ytr[is.na(Ytr)] <- 0
       # tryCatch({
+
       fitT[[ifold]] <- nbrrr_cpp(Ytr, X0, k, cIndex, ofset,
                                  Z0,  PHI0, C0, control,
                                  misind, naind2)
@@ -375,6 +385,13 @@ nbrrr <- function(Yt, X, maxrank = 10,
       # }, error=function(e) print("nbrrr execution issue!") )
 
     }
+    if (trace) {
+      plot(colMeans(dev, na.rm = T),
+           xlab = 'Rank ', ylab = 'CVError')
+      title(paste('Component ', k))
+      Sys.sleep(0.5)
+      }
+
     fit.nfold[[k]] <- fitT
   }
   # select rank with lowest mean;
@@ -383,9 +400,12 @@ nbrrr <- function(Yt, X, maxrank = 10,
 
   # compute model estimate for the selected rank
   misind <- any(naind == 0) + 0
-  control_nbrr <- nbfar_control(initmaxit = 5000, initepsilon = 1e-7,
-                                objI = 1)
+  # control_nbrr <- nbfar_control(initmaxit = 5000, initepsilon = 1e-7,
+  #                               objI = 1)
+  control_nbrr <- control
+  control_nbrr$initepsilon <- 0.01*control_nbrr$initepsilon
   Y[is.na(Y)] <- 0
+  C0 <- Uk[, 1:rank_sel] %*% (Dk[1:rank_sel]*t(Vk[, 1:rank_sel]))
   out <- nbrrr_cpp(Y, X0, rank_sel, cIndex, ofset, Z0,  PHI0, C0,
                    control_nbrr, misind, naind)
   # save(list=ls(),file= 'aditya.rda')
@@ -415,12 +435,44 @@ nbColSp <- function(Y, X0, ofset, cindex,  naind) {
     tryCatch({
       qqq <- naind[,i] == 1
       dt = data.frame(y = Y[qqq, i], X = X0[qqq, -1])
-      ft <- mpath::cv.glmregNB(y~., data = dt, maxit = 50, nfolds = 5,
-                               offset = ofset[qqq, i], thresh = 1e-1,
+      ft <- mpath::glmregNB(y~., data = dt, maxit = 100, nlambda = 2,
+                            offset = ofset[qqq, i], thresh = 1e-2,
+                            penalty.factor  = pf[-1],maxit.theta = 10,
+                            # lambda = seq(0.001, 1, length.out = 5),
+                            # lambda.min.ratio = 0.0001,
+                            # init.theta = MASS::glm.nb(Y[qqq, i]~1)$theta,
+                            alpha = 0.5,
+                            rescale = FALSE, standardize = FALSE)
+      tem = coef(ft)[,2]; tem[is.na(tem)] <- 0
+      Cini[, i] <- tem
+      PHI[i] <- ft$theta[2]
+    }, error = function(error_message) {
+      return(NA)
+    })
+  }
+  return(list(Z = Cini[cindex,,drop = FALSE],
+              C = Cini[-cindex,,drop = FALSE],
+              PHI = PHI))
+}
+
+#' @importFrom mpath cv.glmregNB
+nbColSpx <- function(Y, X0, ofset, cindex,  naind) {
+  q  <- ncol(Y)
+  PHI <- rep(1, q)
+  Cini <- matrix(0, nrow = ncol(X0), ncol = q)
+  pf = rep(1, ncol(X0)); pf[cindex] <- 0
+  for (i in 1:q) {
+    if ((i %% 5) == 0 ) cat('Initialization upto column index: ',i,'\n')
+    tryCatch({
+      qqq <- naind[,i] == 1
+      dt = data.frame(y = Y[qqq, i], X = X0[qqq, -1])
+      ft <- mpath::cv.glmregNB(y~., data = dt, maxit = 100, nfolds = 4,
+                               offset = ofset[qqq, i], thresh = 1e-2,
                                penalty.factor  = pf[-1],maxit.theta = 10,
+                               # nlambda = 5,
                                lambda = seq(0.001, 1, length.out = 5),
                                # init.theta = MASS::glm.nb(Y[qqq, i]~1)$theta,
-                               alpha = 1.0,
+                               alpha = 0.95,
                                rescale = FALSE, standardize = FALSE,
                                plot.it = FALSE)
       tem = coef(ft); tem[is.na(tem)] <- 0
@@ -537,6 +589,7 @@ nbZeroSol <- function(Y, X0, c_index, ofset, naind) {
 #' @param nfold number of folds in k-fold crossvalidation
 #' @param PATH TRUE/FALSE for generating solution path of sequential estimate after cross-validation step
 #' @param nthread number of thread to be used for parallelization
+#' @param trace checking progress of cross validation error
 #' @return
 #'   \item{C}{estimated coefficient matrix; based on GIC}
 #'   \item{Z}{estimated control variable coefficient matrix}
@@ -614,7 +667,7 @@ nbZeroSol <- function(Y, X0, c_index, ofset, naind) {
 #' }
 nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
                   ofset = NULL, control = list(), nfold = 5,
-                  PATH = FALSE, nthread = 1) {
+                  PATH = FALSE, nthread = 1, trace = FALSE) {
   cat("Initializing...", "\n")
   n <- nrow(Yt)
   p <- ncol(X)
@@ -654,6 +707,7 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
   Vk <- svdxc$v[, 1:maxrank, drop = FALSE]
   Dk <- svdxc$d[1:maxrank] / sqrt(n)
   Uk <- aft$C %*% Vk %*% diag(1 / Dk, nrow = maxrank, ncol = maxrank)
+  cat('Singular values initial:', Dk, '\n')
 
   Yf2 <- Y
   naind22 <- (!is.na(Yf2)) + 0
@@ -667,7 +721,7 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
     control_nbrrr <- control # nbfar_control()
     control_nbrrr$objI <- 1
     xx <- nbrrr_cpp(Yf2, X0, 1, cIndex, ofset,
-                    Z,  PHI, Dk[k] * tcrossprod(Uk[, k], Vk[, k]),
+                    Z,  PHI, aft$C, # -  0*U[, 1:k] %*% (D[1:k]*t( V[, 1:k])),
                     control_nbrrr,
                     misind22, naind22)
 
@@ -678,16 +732,19 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
     nkran <- sum(svdxc$d > 1e-07)
     xx$V <- svdxc$v[, 1:nkran, drop = FALSE]
     xx$D <- svdxc$d[1:nkran] / sqrt(n)
-    xx$U <- xx$C[-cIndex, ] %*% xx$V %*% diag(1 / xx$D, nrow = nkran, ncol = nkran)
+    xx$U <- xx$C[-cIndex, ] %*% xx$V %*%
+      diag(1 / xx$D, nrow = nkran, ncol = nkran)
     initW <- list(
       wu = abs(xx$U)^-control$gamma0,
       wd = abs(xx$D)^-control$gamma0,
       wv = abs(xx$V)^-control$gamma0)
     lambda.max <- lmax_nb(Y, X,ofset)
-    zerosol <- nbZeroSol(Yf2, X0, c_index = cIndex, ofset, naind22)
+    # zerosol <- nbZeroSol(Yf2, X0, c_index = cIndex, ofset, naind22)
+    # zerosol <- nbzerosol_cpp(Yf2, X0[,cIndex,drop = FALSE],
+    #                              ofset, control, misind22, naind22)
     cat("Initializing unit-rank unit ", k, ': [Error,iteration,D] = [',
         with(xx,diffobj[maxit]), xx$maxit, xx$D, ']', '\n')
-    cat("Cross validation:", k, "\n")
+    cat("Cross validation for component:", k, "\n")
 
     ## store the deviance of the test data
     if (nthread > 1) {
@@ -696,16 +753,15 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
                            Zini = Z0, PhiIni = Phi0,
                            xx = xx,
                            lmax = lambda.max, control = control,
-                           zerosol,
                            control$maxit, epsilon = control$epsilon,
                            nfold = nfold);
     } else {
+
       outcv = cv_nbfar_cpp(Y, X0, nlam = nlambda, cindex = cIndex,
                            ofset = ofset, initw = initW,
                            Zini = Z0, PhiIni = Phi0,
                            xx = xx,
                            lmax = lambda.max, control = control,
-                           zerosol,
                            control$maxit, epsilon = control$epsilon,
                            nfold = nfold);
     }
@@ -713,13 +769,21 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
     dev.mean <- colMeans(outcv$dev, na.rm = FALSE)
     l.mean <- which.max(dev.mean)
     lamS <- outcv$lamseq[l.mean]
+    if (trace) {
+      plot(colMeans(outcv$dev, na.rm = FALSE),
+           xlab = 'Lambda index', ylab = 'CVError')
+      title(paste('Component ', k))
+      Sys.sleep(0.5)
+      }
+
+
 
 
     Yf <- Y
     naind <- (!is.na(Yf)) + 0 # matrix(1,n,q)
     misind <- any(naind == 0) + 0
     Yf[is.na(Yf)] <- 0
-    # save(list=ls(),file= 'aditya.rda')
+
     # zerosol <- nbZeroSol(Yf, X0, c_index= cIndex, ofset, naind)
     if ( PATH ) {
       control1 <- nbfar_control(lamMinFac = 1e-10, spU  = 0.9, spV = 0.9)
@@ -735,7 +799,7 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
                                                 Vini = xx$V,
                                                 lmax = lambda.max,
                                                 control1,misind,
-                                                naind,zerosol,
+                                                naind,
                                                 control$maxit,
                                                 control$epsilon)
       l.mean <- which(fit.layer$lamKpath == lamS)
@@ -756,12 +820,12 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
                                                 Vini = xx$V,
                                                 lmax = lamS,
                                                 control1,misind,
-                                                naind,zerosol,
+                                                naind,
                                                 control$maxit,
                                                 control$epsilon)
       l.mean <- 1
     }
-
+    save(list=ls(),file= 'aditya.rda')
     ## Same as before
     fit.nlayer[[k]]$initw <- initW
     fit.nlayer[[k]]$lamseq <- outcv$lamseq   ## save sequence of lambda path
@@ -773,11 +837,13 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
     cat(D[k], '\n')
     lamSel[k] <- fit.layer$lamKpath[l.mean, 1]
 
-    if (D[k] == 0) {
-      U <- matrix(U[, 1:(k - 1)], ncol = k - 1)
-      V <- matrix(V[, 1:(k - 1)], ncol = k - 1)
-      D <- D[1:(k - 1)]
-      lamSel <- lamSel[1:(k - 1)]
+    if ((D[k] == 0) ) {
+      if(k > 1){
+        U <- matrix(U[, 1:(k - 1)], ncol = k - 1)
+        V <- matrix(V[, 1:(k - 1)], ncol = k - 1)
+        D <- D[1:(k - 1)]
+        lamSel <- lamSel[1:(k - 1)]
+      }
       break
     }
 
@@ -823,7 +889,7 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
 #   naind <- (!is.na(Ytr)) + 0 # matrix(1,n,q)
 #   misind <- any(naind == 0) + 0
 #   Ytr[is.na(Ytr)] <- 0
-#   # zerosol <- nbZeroSol(Ytr, X0, c_index= cIndex, ofset, naind)
+#   # # zerosol <- nbZeroSol(Ytr, X0, c_index= cIndex, ofset, naind)
 #   # compromised convergence criteria for enhanced speed
 #   control_cv <- control; #control_cv$lamMinFac = 1e-10;
 #   # control_cv$spU  = 0.8; control_cv$spV = 0.9

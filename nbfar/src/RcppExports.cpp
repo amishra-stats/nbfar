@@ -195,9 +195,52 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// nbzerosol_cpp
+Rcpp::List nbzerosol_cpp(arma::mat Y, arma::mat X0, arma::mat ofset, Rcpp::List control, int msind, arma::mat naind);
+RcppExport SEXP _nbfar_nbzerosol_cpp(SEXP YSEXP, SEXP X0SEXP, SEXP ofsetSEXP, SEXP controlSEXP, SEXP msindSEXP, SEXP naindSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type X0(X0SEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type ofset(ofsetSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type control(controlSEXP);
+    Rcpp::traits::input_parameter< int >::type msind(msindSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type naind(naindSEXP);
+    rcpp_result_gen = Rcpp::wrap(nbzerosol_cpp(Y, X0, ofset, control, msind, naind));
+    return rcpp_result_gen;
+END_RCPP
+}
 // nbfar_cpp
-Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm, int nlam, arma::vec cindex, arma::mat ofset, Rcpp::List initw, double Dini, arma::mat Zini, arma::vec PhiIni, arma::mat Uini, arma::vec Vini, double lmax, Rcpp::List control, int msind, arma::mat naind, Rcpp::List zerosol, int maxit, double epsilon);
-RcppExport SEXP _nbfar_nbfar_cpp(SEXP YSEXP, SEXP XmSEXP, SEXP nlamSEXP, SEXP cindexSEXP, SEXP ofsetSEXP, SEXP initwSEXP, SEXP DiniSEXP, SEXP ZiniSEXP, SEXP PhiIniSEXP, SEXP UiniSEXP, SEXP ViniSEXP, SEXP lmaxSEXP, SEXP controlSEXP, SEXP msindSEXP, SEXP naindSEXP, SEXP zerosolSEXP, SEXP maxitSEXP, SEXP epsilonSEXP) {
+Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm, int nlam, arma::vec cindex, arma::mat ofset, Rcpp::List initw, double Dini, arma::mat Zini, arma::vec PhiIni, arma::mat Uini, arma::vec Vini, double lmax, Rcpp::List control, int msind, arma::mat naind, int maxit, double epsilon);
+RcppExport SEXP _nbfar_nbfar_cpp(SEXP YSEXP, SEXP XmSEXP, SEXP nlamSEXP, SEXP cindexSEXP, SEXP ofsetSEXP, SEXP initwSEXP, SEXP DiniSEXP, SEXP ZiniSEXP, SEXP PhiIniSEXP, SEXP UiniSEXP, SEXP ViniSEXP, SEXP lmaxSEXP, SEXP controlSEXP, SEXP msindSEXP, SEXP naindSEXP, SEXP maxitSEXP, SEXP epsilonSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Xm(XmSEXP);
+    Rcpp::traits::input_parameter< int >::type nlam(nlamSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type cindex(cindexSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type ofset(ofsetSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type initw(initwSEXP);
+    Rcpp::traits::input_parameter< double >::type Dini(DiniSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Zini(ZiniSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type PhiIni(PhiIniSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Uini(UiniSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type Vini(ViniSEXP);
+    Rcpp::traits::input_parameter< double >::type lmax(lmaxSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type control(controlSEXP);
+    Rcpp::traits::input_parameter< int >::type msind(msindSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type naind(naindSEXP);
+    Rcpp::traits::input_parameter< int >::type maxit(maxitSEXP);
+    Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
+    rcpp_result_gen = Rcpp::wrap(nbfar_cpp(Y, Xm, nlam, cindex, ofset, initw, Dini, Zini, PhiIni, Uini, Vini, lmax, control, msind, naind, maxit, epsilon));
+    return rcpp_result_gen;
+END_RCPP
+}
+// nbfar_cppx
+Rcpp::List nbfar_cppx(arma::mat Y, arma::mat Xm, int nlam, arma::vec cindex, arma::mat ofset, Rcpp::List initw, double Dini, arma::mat Zini, arma::vec PhiIni, arma::mat Uini, arma::vec Vini, double lmax, Rcpp::List control, int msind, arma::mat naind, Rcpp::List zerosol, int maxit, double epsilon);
+RcppExport SEXP _nbfar_nbfar_cppx(SEXP YSEXP, SEXP XmSEXP, SEXP nlamSEXP, SEXP cindexSEXP, SEXP ofsetSEXP, SEXP initwSEXP, SEXP DiniSEXP, SEXP ZiniSEXP, SEXP PhiIniSEXP, SEXP UiniSEXP, SEXP ViniSEXP, SEXP lmaxSEXP, SEXP controlSEXP, SEXP msindSEXP, SEXP naindSEXP, SEXP zerosolSEXP, SEXP maxitSEXP, SEXP epsilonSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -219,13 +262,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::List >::type zerosol(zerosolSEXP);
     Rcpp::traits::input_parameter< int >::type maxit(maxitSEXP);
     Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
-    rcpp_result_gen = Rcpp::wrap(nbfar_cpp(Y, Xm, nlam, cindex, ofset, initw, Dini, Zini, PhiIni, Uini, Vini, lmax, control, msind, naind, zerosol, maxit, epsilon));
+    rcpp_result_gen = Rcpp::wrap(nbfar_cppx(Y, Xm, nlam, cindex, ofset, initw, Dini, Zini, PhiIni, Uini, Vini, lmax, control, msind, naind, zerosol, maxit, epsilon));
     return rcpp_result_gen;
 END_RCPP
 }
 // cv_nbfar_cpp
-Rcpp::List cv_nbfar_cpp(arma::mat Y, arma::mat Xm, int nlam, arma::vec cindex, arma::mat ofset, Rcpp::List initw, arma::mat Zini, arma::vec PhiIni, Rcpp::List xx, double lmax, Rcpp::List control, Rcpp::List zerosol, int maxit, double epsilon, int nfold);
-RcppExport SEXP _nbfar_cv_nbfar_cpp(SEXP YSEXP, SEXP XmSEXP, SEXP nlamSEXP, SEXP cindexSEXP, SEXP ofsetSEXP, SEXP initwSEXP, SEXP ZiniSEXP, SEXP PhiIniSEXP, SEXP xxSEXP, SEXP lmaxSEXP, SEXP controlSEXP, SEXP zerosolSEXP, SEXP maxitSEXP, SEXP epsilonSEXP, SEXP nfoldSEXP) {
+Rcpp::List cv_nbfar_cpp(arma::mat Y, arma::mat Xm, int nlam, arma::vec cindex, arma::mat ofset, Rcpp::List initw, arma::mat Zini, arma::vec PhiIni, Rcpp::List xx, double lmax, Rcpp::List control, int maxit, double epsilon, int nfold);
+RcppExport SEXP _nbfar_cv_nbfar_cpp(SEXP YSEXP, SEXP XmSEXP, SEXP nlamSEXP, SEXP cindexSEXP, SEXP ofsetSEXP, SEXP initwSEXP, SEXP ZiniSEXP, SEXP PhiIniSEXP, SEXP xxSEXP, SEXP lmaxSEXP, SEXP controlSEXP, SEXP maxitSEXP, SEXP epsilonSEXP, SEXP nfoldSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -240,17 +283,16 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::List >::type xx(xxSEXP);
     Rcpp::traits::input_parameter< double >::type lmax(lmaxSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type control(controlSEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type zerosol(zerosolSEXP);
     Rcpp::traits::input_parameter< int >::type maxit(maxitSEXP);
     Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
     Rcpp::traits::input_parameter< int >::type nfold(nfoldSEXP);
-    rcpp_result_gen = Rcpp::wrap(cv_nbfar_cpp(Y, Xm, nlam, cindex, ofset, initw, Zini, PhiIni, xx, lmax, control, zerosol, maxit, epsilon, nfold));
+    rcpp_result_gen = Rcpp::wrap(cv_nbfar_cpp(Y, Xm, nlam, cindex, ofset, initw, Zini, PhiIni, xx, lmax, control, maxit, epsilon, nfold));
     return rcpp_result_gen;
 END_RCPP
 }
 // cv_nbfar_par
-Rcpp::List cv_nbfar_par(arma::mat Y, arma::mat Xm, int nlam, arma::vec cindex, arma::mat ofset, Rcpp::List initw, arma::mat Zini, arma::vec PhiIni, Rcpp::List xx, double lmax, Rcpp::List control, Rcpp::List zerosol, int maxit, double epsilon, int nfold);
-RcppExport SEXP _nbfar_cv_nbfar_par(SEXP YSEXP, SEXP XmSEXP, SEXP nlamSEXP, SEXP cindexSEXP, SEXP ofsetSEXP, SEXP initwSEXP, SEXP ZiniSEXP, SEXP PhiIniSEXP, SEXP xxSEXP, SEXP lmaxSEXP, SEXP controlSEXP, SEXP zerosolSEXP, SEXP maxitSEXP, SEXP epsilonSEXP, SEXP nfoldSEXP) {
+Rcpp::List cv_nbfar_par(arma::mat Y, arma::mat Xm, int nlam, arma::vec cindex, arma::mat ofset, Rcpp::List initw, arma::mat Zini, arma::vec PhiIni, Rcpp::List xx, double lmax, Rcpp::List control, int maxit, double epsilon, int nfold);
+RcppExport SEXP _nbfar_cv_nbfar_par(SEXP YSEXP, SEXP XmSEXP, SEXP nlamSEXP, SEXP cindexSEXP, SEXP ofsetSEXP, SEXP initwSEXP, SEXP ZiniSEXP, SEXP PhiIniSEXP, SEXP xxSEXP, SEXP lmaxSEXP, SEXP controlSEXP, SEXP maxitSEXP, SEXP epsilonSEXP, SEXP nfoldSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -265,11 +307,10 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::List >::type xx(xxSEXP);
     Rcpp::traits::input_parameter< double >::type lmax(lmaxSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type control(controlSEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type zerosol(zerosolSEXP);
     Rcpp::traits::input_parameter< int >::type maxit(maxitSEXP);
     Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
     Rcpp::traits::input_parameter< int >::type nfold(nfoldSEXP);
-    rcpp_result_gen = Rcpp::wrap(cv_nbfar_par(Y, Xm, nlam, cindex, ofset, initw, Zini, PhiIni, xx, lmax, control, zerosol, maxit, epsilon, nfold));
+    rcpp_result_gen = Rcpp::wrap(cv_nbfar_par(Y, Xm, nlam, cindex, ofset, initw, Zini, PhiIni, xx, lmax, control, maxit, epsilon, nfold));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -289,9 +330,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_nbfar_softThres", (DL_FUNC) &_nbfar_softThres, 2},
     {"_nbfar_softT", (DL_FUNC) &_nbfar_softT, 2},
     {"_nbfar_nzcount", (DL_FUNC) &_nbfar_nzcount, 1},
-    {"_nbfar_nbfar_cpp", (DL_FUNC) &_nbfar_nbfar_cpp, 18},
-    {"_nbfar_cv_nbfar_cpp", (DL_FUNC) &_nbfar_cv_nbfar_cpp, 15},
-    {"_nbfar_cv_nbfar_par", (DL_FUNC) &_nbfar_cv_nbfar_par, 15},
+    {"_nbfar_nbzerosol_cpp", (DL_FUNC) &_nbfar_nbzerosol_cpp, 6},
+    {"_nbfar_nbfar_cpp", (DL_FUNC) &_nbfar_nbfar_cpp, 17},
+    {"_nbfar_nbfar_cppx", (DL_FUNC) &_nbfar_nbfar_cppx, 18},
+    {"_nbfar_cv_nbfar_cpp", (DL_FUNC) &_nbfar_cv_nbfar_cpp, 14},
+    {"_nbfar_cv_nbfar_par", (DL_FUNC) &_nbfar_cv_nbfar_par, 14},
     {NULL, NULL, 0}
 };
 

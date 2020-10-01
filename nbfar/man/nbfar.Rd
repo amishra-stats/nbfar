@@ -14,7 +14,8 @@ nbfar(
   control = list(),
   nfold = 5,
   PATH = FALSE,
-  nthread = 1
+  nthread = 1,
+  trace = FALSE
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ nbfar(
 \item{PATH}{TRUE/FALSE for generating solution path of sequential estimate after cross-validation step}
 
 \item{nthread}{number of thread to be used for parallelization}
+
+\item{trace}{checking progress of cross validation error}
 }
 \value{
 \item{C}{estimated coefficient matrix; based on GIC}

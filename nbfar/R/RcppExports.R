@@ -57,15 +57,23 @@ nzcount <- function(x) {
     .Call('_nbfar_nzcount', PACKAGE = 'nbfar', x)
 }
 
-nbfar_cpp <- function(Y, Xm, nlam, cindex, ofset, initw, Dini, Zini, PhiIni, Uini, Vini, lmax, control, msind, naind, zerosol, maxit, epsilon) {
-    .Call('_nbfar_nbfar_cpp', PACKAGE = 'nbfar', Y, Xm, nlam, cindex, ofset, initw, Dini, Zini, PhiIni, Uini, Vini, lmax, control, msind, naind, zerosol, maxit, epsilon)
+nbzerosol_cpp <- function(Y, X0, ofset, control, msind, naind) {
+    .Call('_nbfar_nbzerosol_cpp', PACKAGE = 'nbfar', Y, X0, ofset, control, msind, naind)
 }
 
-cv_nbfar_cpp <- function(Y, Xm, nlam, cindex, ofset, initw, Zini, PhiIni, xx, lmax, control, zerosol, maxit, epsilon, nfold) {
-    .Call('_nbfar_cv_nbfar_cpp', PACKAGE = 'nbfar', Y, Xm, nlam, cindex, ofset, initw, Zini, PhiIni, xx, lmax, control, zerosol, maxit, epsilon, nfold)
+nbfar_cpp <- function(Y, Xm, nlam, cindex, ofset, initw, Dini, Zini, PhiIni, Uini, Vini, lmax, control, msind, naind, maxit, epsilon) {
+    .Call('_nbfar_nbfar_cpp', PACKAGE = 'nbfar', Y, Xm, nlam, cindex, ofset, initw, Dini, Zini, PhiIni, Uini, Vini, lmax, control, msind, naind, maxit, epsilon)
 }
 
-cv_nbfar_par <- function(Y, Xm, nlam, cindex, ofset, initw, Zini, PhiIni, xx, lmax, control, zerosol, maxit, epsilon, nfold) {
-    .Call('_nbfar_cv_nbfar_par', PACKAGE = 'nbfar', Y, Xm, nlam, cindex, ofset, initw, Zini, PhiIni, xx, lmax, control, zerosol, maxit, epsilon, nfold)
+nbfar_cppx <- function(Y, Xm, nlam, cindex, ofset, initw, Dini, Zini, PhiIni, Uini, Vini, lmax, control, msind, naind, zerosol, maxit, epsilon) {
+    .Call('_nbfar_nbfar_cppx', PACKAGE = 'nbfar', Y, Xm, nlam, cindex, ofset, initw, Dini, Zini, PhiIni, Uini, Vini, lmax, control, msind, naind, zerosol, maxit, epsilon)
+}
+
+cv_nbfar_cpp <- function(Y, Xm, nlam, cindex, ofset, initw, Zini, PhiIni, xx, lmax, control, maxit, epsilon, nfold) {
+    .Call('_nbfar_cv_nbfar_cpp', PACKAGE = 'nbfar', Y, Xm, nlam, cindex, ofset, initw, Zini, PhiIni, xx, lmax, control, maxit, epsilon, nfold)
+}
+
+cv_nbfar_par <- function(Y, Xm, nlam, cindex, ofset, initw, Zini, PhiIni, xx, lmax, control, maxit, epsilon, nfold) {
+    .Call('_nbfar_cv_nbfar_par', PACKAGE = 'nbfar', Y, Xm, nlam, cindex, ofset, initw, Zini, PhiIni, xx, lmax, control, maxit, epsilon, nfold)
 }
 

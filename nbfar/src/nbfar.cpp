@@ -97,8 +97,8 @@ arma::mat grad_eta_nb(arma::mat Y, arma::mat eta, arma::vec Phi){
 // [[Rcpp::export]]
 arma::mat grad_mu_nb(const arma::mat &Y, const arma::mat &mu,
                      const arma::vec &Phi){
-// arma::mat grad_mu_nb(arma::mat Y, arma::mat mu,
-//                      arma::vec Phi){
+  // arma::mat grad_mu_nb(arma::mat Y, arma::mat mu,
+  //                      arma::vec Phi){
   arma::mat tem  = mu, tem1 = mu;
   tem.each_row() += Phi.t();
   tem1.each_row() %= Phi.t();
@@ -179,8 +179,8 @@ arma::vec update_mu_phi(arma::mat Y, arma::mat mu, arma::vec Phi){
 // [[Rcpp::export]]
 arma::vec update_mu_alpha(const arma::mat &Y, const arma::mat &mu,
                           const arma::vec &Phi, const arma::mat &naind){
-// arma::vec update_mu_alpha( arma::mat Y,  arma::mat mu,
-//                            arma::vec Phi,  arma::mat naind){
+  // arma::vec update_mu_alpha( arma::mat Y,  arma::mat mu,
+  //                            arma::vec Phi,  arma::mat naind){
   // compute T1
   arma::vec alpha = 1/Phi;
   arma::vec tem,a,b;
@@ -251,9 +251,9 @@ arma::vec update_mu_alpha(const arma::mat &Y, const arma::mat &mu,
 arma::vec nbrrr_likelihood(const arma::mat &Y, const arma::mat &MU,
                            const arma::mat &ETA,
                            const arma::vec &Phi, const arma::mat &naind) {
-// arma::vec nbrrr_likelihood( arma::mat Y,  arma::mat MU,
-//                             arma::mat ETA,
-//                             arma::vec Phi,  arma::mat naind) {
+  // arma::vec nbrrr_likelihood( arma::mat Y,  arma::mat MU,
+  //                             arma::mat ETA,
+  //                             arma::vec Phi,  arma::mat naind) {
   // compute T1
   arma::vec tem,a, out(3);
   arma::mat T1 = zeros(size(Y));
@@ -455,7 +455,7 @@ double get_sv1(arma::cube xyx, arma::vec ue, int q){
 
 // [[Rcpp::export]]
 double get_sv(const arma::cube &xyx, const arma::vec &ue, int q, arma::uvec tem_uvec){
-// double get_sv( arma::cube xyx,  arma::vec ue, int q, arma::uvec tem_uvec){
+  // double get_sv( arma::cube xyx,  arma::vec ue, int q, arma::uvec tem_uvec){
   int iter; arma::vec tem(q); arma::mat X2X2;
   // arma::uvec tem_uvec = find(ue);
   for(iter = 0; iter < q; iter++){
@@ -495,6 +495,101 @@ double expm1_maclaurin( double x )
 
 
 
+
+// ctrl <- nbfar_control( objI = 0, initmaxit = 5000, initepsilon = 1e-10)
+//   naind <- (!is.na(Y)) + 0 # matrix(1,n,q)
+//   msind <- any(naind == 0) + 0
+// zerosoltest <- nbzerosol_cpp(Y, X0[,1,drop = FALSE], offset, ctrl, msind, naind)
+//   zerosoltestx <- nbZeroSol(Y, X0, c_index = 1, offset, naind)
+//   zerosoltest$Z - zerosoltestx$Z
+//   zerosoltest$PHI -  zerosoltestx$PHI
+// X;Y;Z;O;r; Zini, PhiIni; ndev[ for convergence critteria]
+// [[Rcpp::export]]
+Rcpp::List nbzerosol_cpp(arma::mat Y, arma::mat X0,
+                         arma::mat ofset,
+                         Rcpp::List control, int msind, arma::mat naind){
+  bool converged=false;
+  int pt = X0.n_cols, q = Y.n_cols,  maxit = control["initmaxit"];
+  int cObj = control["objI"];
+  Rcpp::List out;
+  // define epsilon to see convergence of the data
+  double epsilon = control["initepsilon"];
+
+  arma::uvec t4=find(naind==0);
+
+
+  arma::mat MU(size(Y)), ETA(size(Y)), grad_mu;
+  arma::mat Res,Ct,X1 = X0; // X1 is the control variable
+  double sb = get_sc(X1, Y);X1 = X1/sb;
+
+  arma::mat C = zeros<mat>(pt,q);
+  arma::vec Phi = ones<vec>(q);
+
+  wall_clock timer;
+  // defining required variable used in the loop
+  int iter;
+  double elp;
+  arma::vec diffobj, obj, objtem(3);
+  diffobj.zeros(maxit);obj.zeros(maxit+1);
+
+
+  ETA = ofset + X0*C;
+  MU = exp(ETA);
+  if(msind == 1) MU.elem(t4).zeros();
+
+
+  // nbrrr_likelihood:
+  if(cObj!=0){
+    obj(0) = nb_dev(Y, MU, Phi, naind);
+  } else {
+    objtem = nbrrr_likelihood(Y, MU, ETA, Phi,naind);
+    obj(0) = objtem(0);
+  }
+
+  timer.tic();
+  for(iter = 1; iter < maxit; iter++){
+    // Z-step:
+    if(msind == 1) MU.elem(t4).zeros();
+    grad_mu = grad_mu_nb(Y, MU, Phi);
+    if(msind == 1) grad_mu.elem(t4).zeros();
+    C = C -   X1.t()*grad_mu;
+
+    // Phi-step:
+    ETA  = ofset + X0*C;
+    MU = exp(ETA);
+    if(msind == 1) MU.elem(t4).zeros();
+    Phi = update_mu_alpha(Y, MU, Phi,naind);
+
+    if(cObj!=0){
+      obj(iter) = nb_dev(Y, MU, Phi, naind);
+    } else {
+      objtem = nbrrr_likelihood(Y, MU, ETA, Phi,naind);
+      obj(iter) = objtem(0);
+    }
+    diffobj(iter) = abs((obj(iter) - obj(iter- 1)))/(abs(obj(iter)) + 0.1);
+
+    if (diffobj(iter) < epsilon ) {
+      converged = true;
+      break;
+    }
+  }
+  elp = timer.toc();
+
+  out["Z"] = C;
+  out["PHI"] = Phi;
+  // out["objval"] = obj;
+  // out["diffobj"] = diffobj;
+  out["converged"] = converged;
+  // out["ExecTimekpath"] = elp;
+  out["maxit"] = iter;
+  out["converge"] = 0;
+  if(converged) out["converge"] = 1;
+  return(out);
+}
+
+
+
+
 // [[Rcpp::export]]
 Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
                      arma::mat ofset, Rcpp::List initw,
@@ -502,7 +597,7 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
                      arma::mat  Uini, arma::vec Vini,
                      double lmax, Rcpp::List control,
                      int msind, arma::mat naind,
-                     Rcpp::List zerosol,int maxit, double epsilon){
+                     int maxit, double epsilon){
 
   arma::mat X0 = Xm, sd0 = stddev(Xm);
   sd0.elem( find(sd0 == 0) ).ones(); sd0.ones();
@@ -510,6 +605,7 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
   X0.each_row() %= sd0;
   arma::vec sd1  = conv_to< arma::vec >::from(sd0);
   arma::vec tem_v;
+
 
   // Extract parameter
   // bool converged=false;
@@ -535,6 +631,7 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
   arma::uvec t4=find(naind==0);
   arma::vec lamSeq =  exp(linspace<vec>(log(lmx),  log(lmn), nlam));
 
+
   // ------------ define  path vaariable
   arma::mat uklam = zeros(p,nlam+1),vklam = zeros(q,nlam+1);
   arma::mat philam = zeros(q,nlam+1), BIClam = zeros(4,nlam+1);
@@ -549,10 +646,12 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
   Uini = Uini%(1/sd0(cIndexC)); wu = pow(abs(Uini),-1.0*gamma0);
   Zini.each_col() %= (1/sd0(cIndex));
   // Solution for largest lambda [ue = ve = de = 0]
-  arma::mat C = zeros(pt,q), Ct, Z00 = zerosol["Z"];
+  Rcpp::List zerosolx = nbzerosol_cpp(Y, X0.cols(cIndex),ofset,control,msind,naind);
+  arma::mat C = zeros(pt,q), Ct, Z00 = zerosolx["Z"];
+  // Z00.each_col() %= (1/sd0(cIndex));
   C.rows(cIndex) = Z00;
-  C.each_col() %= (1/sd0.t());
-  arma::vec Phi = zerosol["PHI"];
+  // C.each_col() %= (1/sd0.t());
+  arma::vec Phi = zerosolx["PHI"], PHI00 = zerosolx["PHI"];
   arma::vec ue = zeros(p),ve = zeros(q);
   double de = 0;
   C.rows(cIndexC) = de*(ue*ve.t());
@@ -562,7 +661,6 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
   // tem_v = nbrrr_likelihoodx(Y, MU, ETA, Phi, naind, Y_l);
   tem_v = nbrrr_likelihood(Y, MU, ETA, Phi, naind);
   double obj0 = tem_v(0);
-
 
   // Model fit intital
   int ik = 0;
@@ -638,7 +736,11 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
       vest = softT(xtyv,plfacv)/(1+2*fac*accu(square(ue))/sv);
       svk = norm( vest,2);
       if(svk==0){
-        de = 0;ue.zeros(p);ve.zeros(q); break;
+        de = 0;ue.zeros(p);ve.zeros(q);
+        C.rows(cIndexC) = 0*C.rows(cIndexC);
+        // C.rows(cIndex) = Z00;
+        // Phi = PHI00;
+        break;
       } else {
         de = svk;
         ve = vest/svk;
@@ -658,7 +760,291 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
       suk = norm(uest,2);
       if(suk==0){
         de = 0;ue.zeros(p);ve.zeros(q);
-        C.rows(cIndexC) = 0*C.rows(cIndexC); break;
+        C.rows(cIndexC) = 0*C.rows(cIndexC);
+        // C.rows(cIndex) = Z00;
+        // Phi = PHI00;
+        break;
+      } else {
+        tem_uvec = find(uest);
+        de = as_scalar(sqrt((uest(tem_uvec).t()*X2X2.submat(tem_uvec,tem_uvec)*uest(tem_uvec))));
+        ue = uest/de;
+      }
+      C.rows(cIndexC) = (ue*de)*ve.t();
+
+
+      // Z-step:
+      xuv = X2.cols(tem_uvec)*uest(tem_uvec);
+      ETA  = zb;
+      tem_uvec = find(ve); xuv = xuv*ve(tem_uvec).t();
+      ETA.cols(tem_uvec) = ETA.cols(tem_uvec) +  xuv;
+      MU = exp(ETA);
+      // if(msind == 1) MU.elem(t4).zeros(); /////// 2
+      grad_mu = grad_mu_nb(Y, MU, Phi);
+      if(msind == 1) grad_mu.elem(t4).zeros();
+      C.rows(cIndex) = C.rows(cIndex) -   X1.t()*grad_mu;
+      zb =ofset + X0.cols(cIndex)*C.rows(cIndex);
+
+
+      // Phi-step:
+      ETA  = zb;  ETA.cols(tem_uvec) = ETA.cols(tem_uvec) +  xuv;
+      MU = exp(ETA);
+      // if(msind == 1) MU.elem(t4).zeros(); ///////
+      Phi = update_mu_alpha(Y, MU, Phi,naind);
+
+
+      if(cObj!=0){
+        obj(iter) = nb_dev(Y, MU, Phi, naind);
+      } else {
+        tem_v = nbrrr_likelihood(Y, MU, ETA, Phi, naind);
+        obj(iter) = tem_v(0) + alp*as_scalar(de*lam*wd*(wu.t()*abs(ue))*(wv.t()*abs(ve))) +
+          (1-alp)*lam*(de*de)*as_scalar((ue.t()*ue)*(ve.t()*ve));
+      }
+      diffobj(iter) = abs((obj(iter) - obj(iter- 1)))/(abs(obj(iter)) + 0.1);
+      relerror(ii) = diffobj(iter);
+      if (abs(diffobj(iter)) < epsilon ) {
+        // converged = true;
+        convval(ii) = 1;
+        break;
+      }
+    }
+    maxitc(ii) = iter;
+
+    elp = timer.toc();
+    indlam(ii) = ii;
+    uklam.col(ik) = ue%sd1(cIndexC);
+    vklam.col(ik) = ve;
+    philam.col(ik) = Phi;
+    dklam(ik) = de;
+    C.rows(cIndexC) = de*(ue*ve.t());
+    if(eea==1){
+      m1 = norm(uklam.col(ik),2);
+      uklam.col(ik) = uklam.col(ik)/m1;
+      dklam(ik) = m1*dklam(ik);
+    }
+    lselectSeq(ik) = lam;
+    objval.col(ik) = obj;//
+    execTime(ik) = elp;
+
+
+    Ct = C;
+    Ct.each_col() %= sd0.t();
+    zpath.slice(ik) = Ct.rows(cIndex);
+    Ckpath.slice(ik) = Ct;
+
+    ETA = ofset + X0*C; ///////
+    MU = exp(ETA); ///////
+    SSE = nb_dev(Y, MU, Phi, naind)/qn;
+    df = nzcount(ue) + nzcount(ve)  +(pt-p)*q -1;
+
+    BIClam(0,ik) = SSE + (df*log((double)qn))/(qn); //BIC
+    BIClam(1,ik) = SSE + 2*df*log((double) pt*q)/(qn); //BICP
+    BIClam(2,ik) = SSE + log(log( (double) qn))*df*log((double) pt*q)/(qn); //GIC
+    BIClam(3,ik) = SSE + (2/qn)*(df); //AIC
+    MUkpath.slice(ik) = MU;
+    ETAkpath.slice(ik) = ETA;
+    ik = ik+1;
+
+    if( (iter>1) && ((nzcount(ue) > (p*spu)) || (nzcount(ve) > (q*spv)))  ) {break;}
+  }
+  ik = ik-1;
+
+  Rcpp::List out;
+  out["ukpath"] = uklam.cols(0,ik);
+  out["vkpath"] = vklam.cols(0,ik);
+  out["dkpath"] = arma::conv_to<arma::vec>::from(dklam.head(ik+1)) ;
+  out["phipath"] = philam.cols(0,ik);
+  out["zpath"] = arma::conv_to<arma::cube>::from(zpath.head_slices(ik+1));
+  out["mukpath"] = arma::conv_to<arma::cube>::from(MUkpath.head_slices(ik+1));
+  out["etapath"] = arma::conv_to<arma::cube>::from(ETAkpath.head_slices(ik+1));
+  out["ICKpath"] = BIClam.cols(0,ik);
+  out["nkpath"] = ik+1;
+  out["objkval"] = objval.cols(0,ik);
+  out["Ckpath"] = arma::conv_to<arma::cube>::from(Ckpath.head_slices(ik+1));
+  out["lamKpath"] = arma::conv_to<arma::vec>::from(lselectSeq.head(ik+1));
+  out["ExecTimekpath"] = arma::conv_to<arma::vec>::from(execTime.head(ik+1));
+  out["lamseq"] = lamSeq;
+  out["maxit"] = maxitc;
+  out["converge"] = convval;
+  out["converge_error"] = relerror;
+  return(out);
+}
+
+
+
+
+// [[Rcpp::export]]
+Rcpp::List nbfar_cppx(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
+                     arma::mat ofset, Rcpp::List initw,
+                     double Dini, arma::mat  Zini, arma::vec PhiIni,
+                     arma::mat  Uini, arma::vec Vini,
+                     double lmax, Rcpp::List control,
+                     int msind, arma::mat naind,
+                     Rcpp::List zerosol,int maxit, double epsilon){
+
+  arma::mat X0 = Xm, sd0 = stddev(Xm);
+  sd0.elem( find(sd0 == 0) ).ones(); sd0.ones();
+  sd0 = 1/sd0;
+  X0.each_row() %= sd0;
+  arma::vec sd1  = conv_to< arma::vec >::from(sd0);
+  arma::vec tem_v;
+
+
+  // Extract parameter
+  // bool converged=false;
+  int pt = X0.n_cols, q = Y.n_cols, n = Y.n_rows,ii=0;
+  int p = pt - cindex.n_elem, eea = 0;
+  int cObj = control["objI"];
+  double alp = control["elnetAlpha"];
+  double spu = control["spU"], spv = control["spV"];
+  double wd =  initw["wd"], gamma0 = control["gamma0"];
+  arma::vec wu = initw["wu"], wv = initw["wv"];
+  arma::uvec cIndex =  arma::conv_to< uvec >::from(cindex-1);
+  arma::uvec cIndexC = mySdiff(linspace<uvec>(0,pt-1,pt), cIndex);
+  arma::mat X2 = X0.cols(cIndexC),X1 = X0.cols(cIndex), X3 =X0;
+  double sb = get_sc(X1, Y); X1 =  X1/sb;
+  arma::mat xx = X2.t()*X2, X2X2, Y_l = lgamma(Y+1); X2X2 = xx/n;
+  arma::cube xyx = zeros(p,p,q);
+  for(ii=0; ii < q; ii++) xyx.slice(ii) = X2.t()*(X2.each_col()%(Y.col(ii)+1));
+  if(eea==1) X2X2 = diagmat(ones<vec>(X2.n_cols));
+  // generate sequence of lambda
+  double tem = control["lamMaxFac"];
+  double lmx = tem*lmax; tem  = control["lamMinFac"];
+  double lmn = lmax*tem;
+  arma::uvec t4=find(naind==0);
+  arma::vec lamSeq =  exp(linspace<vec>(log(lmx),  log(lmn), nlam));
+
+
+  // ------------ define  path vaariable
+  arma::mat uklam = zeros(p,nlam+1),vklam = zeros(q,nlam+1);
+  arma::mat philam = zeros(q,nlam+1), BIClam = zeros(4,nlam+1);
+  arma::mat objval = zeros(maxit+1,nlam+1);
+  arma::vec dklam = zeros(nlam+1),lselectSeq = zeros(nlam+1);
+  arma::vec indlam = zeros(nlam+1),execTime = zeros(nlam+1);
+  arma::cube zpath = zeros(pt-p,q,nlam+1),Ckpath= zeros(pt,q,nlam+1);
+  arma::cube MUkpath = zeros(n,q,nlam+1), ETAkpath = zeros(n,q,nlam+1);
+
+  //  -------- Inittialization, weight for penalty
+  //  Update u^0, v^0, d^0,z^0, phi^0 estimate
+  Uini = Uini%(1/sd0(cIndexC)); wu = pow(abs(Uini),-1.0*gamma0);
+  Zini.each_col() %= (1/sd0(cIndex));
+  // Solution for largest lambda [ue = ve = de = 0]
+  arma::mat C = zeros(pt,q), Ct, Z00 = zerosol["Z"];
+  Z00.each_col() %= (1/sd0(cIndex));
+  C.rows(cIndex) = Z00;
+  // C.each_col() %= (1/sd0.t());
+  arma::vec Phi = zerosol["PHI"], PHI00 = zerosol["PHI"];
+  arma::vec ue = zeros(p),ve = zeros(q);
+  double de = 0;
+  C.rows(cIndexC) = de*(ue*ve.t());
+  arma::mat ETA = ofset + X0*C;
+  arma::mat MU = exp(ETA);
+  if(msind == 1) MU.elem(t4).zeros();
+  // tem_v = nbrrr_likelihoodx(Y, MU, ETA, Phi, naind, Y_l);
+  tem_v = nbrrr_likelihood(Y, MU, ETA, Phi, naind);
+  double obj0 = tem_v(0);
+
+  // Model fit intital
+  int ik = 0;
+  double df = (pt-p)*q, qn = accu(naind);
+  double SSE = nb_dev(Y, MU, Phi, naind)/qn;
+  BIClam(0,ik) = SSE + (df*log((double)qn))/(qn); //BIC
+  BIClam(1,ik) = SSE + 2*df*log((double) pt*q)/(qn); //BICP
+  BIClam(2,ik) = SSE + log(log( (double) qn))*df*log((double) pt*q)/(qn); //GIC
+  BIClam(3,ik) = SSE + (2/qn)*(df); //AIC
+  Ct = C; Ct = Ct.each_col()%sd0.t();
+  Ckpath.slice(ik) = Ct; MUkpath.slice(ik) = MU;
+  ETAkpath.slice(ik) = ETA;
+  zpath.slice(ik) = Ct.rows(cIndex);
+  philam.col(ik) = Phi;
+
+
+
+  // defining auxilary variable for the loop
+  int iter;
+  double svk=0,suk=0,m1=1,lam,elp,fac,sv,su;
+  // double de_temp;
+  // arma::mat C_temp,MU_temp;
+  // arma::vec Phi_temp, ue_temp, ve_temp;
+  arma::vec diffobj, obj, obj2, plfacv, plfacu,PhiI, relerror = zeros(nlam);
+  arma::vec vest, uest, maxitc = zeros(nlam),convval = zeros(nlam), xtyv, xtyu;
+  arma::mat facW = alp*wd*(wu*wv.t()),facL;
+  arma::mat X2Y = X2.t()*Y,X1Y = X1.t()*Y,zb,xuv;
+  arma::mat grad_mu, ofset_exp = exp(ofset);
+  arma::uvec tem_uvec;
+
+  // sv = (Y.max()+1)*n/2;
+  // su = sqrt(Y.max()+1)*norm(xx,2)/2;
+  // converggence: dev/obj
+  wall_clock timer;
+  for(ii=0; ii < nlam; ii++){
+    lam = lamSeq(ii);
+    facL = lam*facW;
+    fac=(1-alp)*lam;
+    diffobj.zeros(maxit);obj.zeros(maxit+1);obj2.zeros(5*(maxit+1));
+
+    // set initialization for the optimization;
+    if(norm(C.rows(cIndexC),"fro") == 0){
+      ue = Uini; ve = Vini; de = Dini;
+      C.rows(cIndex) = Zini;
+      Phi = PhiIni;
+    }
+    C.rows(cIndexC) = de*(ue*ve.t());
+    zb =ofset + X0.cols(cIndex)*(C.rows(cIndex));
+    xuv = X0.cols(cIndexC)*(C.rows(cIndexC));
+    // MU = ofset_exp%exp(X0*C);
+    MU = exp(zb + xuv);
+    // MU = ofset_exp%exp(X0*C);
+    obj(0) = obj0;
+
+    timer.tic();
+    for(iter = 1; iter < maxit; iter++){
+      // C_temp = C;
+      // ue_temp = ue; ve_temp = ve; de_temp = de;
+      // MU_temp = MU;
+      // Phi_temp = Phi;
+      // if(msind == 1) MU.elem(t4).zeros(); /////////
+
+
+      // update  ve
+      tem_uvec = find(ue);
+      sv = get_sv(xyx,ue,q, tem_uvec);
+      grad_mu = grad_mu_nb(Y, MU, Phi);
+      if(msind == 1) grad_mu.elem(t4).zeros();
+      // cout << " C " << accu(grad_mu) <<  " "<< accu(MU)<<  " "<< accu(C)<<  " "<< accu(ue)<<  " "<< accu(ve) <<  " "<< accu(de) << std::endl;
+      xuv =X2.cols(tem_uvec)*ue(tem_uvec);
+      xtyv = de*ve - (grad_mu.t()*xuv)/sv;
+      plfacv =  (facL.t()*abs(ue))/sv;
+      vest = softT(xtyv,plfacv)/(1+2*fac*accu(square(ue))/sv);
+      svk = norm( vest,2);
+      if(svk==0){
+        de = 0;ue.zeros(p);ve.zeros(q);
+        C.rows(cIndexC) = 0*C.rows(cIndexC);
+        // C.rows(cIndex) = Z00;
+        // Phi = PHI00;
+        break;
+      } else {
+        de = svk;
+        ve = vest/svk;
+      }
+
+      // update ue
+      tem_uvec = find(ve); ETA  = zb;
+      ETA.cols(tem_uvec) = ETA.cols(tem_uvec) +  xuv*vest(tem_uvec).t();
+      MU = exp(ETA);
+
+      su = norm(xx + X2.t()*(X2.each_col()%(Y.cols(tem_uvec)*square(ve(tem_uvec)))),2)/2;
+      grad_mu = grad_mu_nb(Y, MU, Phi);
+      if(msind == 1) grad_mu.elem(t4).zeros();
+      xtyu = de*ue - (X2.t()*(grad_mu.cols(tem_uvec)*ve(tem_uvec)))/su;
+      plfacu = (facL*abs(ve))/su;
+      uest = softT(xtyu,plfacu)/(1+2*fac/su);
+      suk = norm(uest,2);
+      if(suk==0){
+        de = 0;ue.zeros(p);ve.zeros(q);
+        C.rows(cIndexC) = 0*C.rows(cIndexC);
+        // C.rows(cIndex) = Z00;
+        // Phi = PHI00;
+        break;
       } else {
         tem_uvec = find(uest);
         de = as_scalar(sqrt((uest(tem_uvec).t()*X2X2.submat(tem_uvec,tem_uvec)*uest(tem_uvec))));
@@ -769,13 +1155,14 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
 
 
 
+
 // [[Rcpp::export]]
 Rcpp::List cv_nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
                         arma::mat ofset, Rcpp::List initw,
                         arma::mat  Zini, arma::vec PhiIni,
                         Rcpp::List xx,
                         double lmax, Rcpp::List control,
-                        Rcpp::List zerosol,int maxit, double epsilon,
+                        int maxit, double epsilon,
                         int nfold){
   arma::mat Ytr(size(Y)), Yte(size(Y)), natr(size(Y)), nate(size(Y));
   arma::uvec indna = find_finite(Y),teIndex, trIndex;
@@ -801,9 +1188,10 @@ Rcpp::List cv_nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
     nate.elem(teIndex) = ones<vec>(teIndex.n_elem);
     misind = 1;
     fitF =  nbfar_cpp(Ytr, Xm,  nlam, cindex,
-                       ofset, initw , Dini, Zini, PhiIni,
+                      ofset, initw , Dini, Zini, PhiIni,
                       Uini, Vini, lmax , control, misind,
-                      natr, zerosol, maxit, epsilon);
+                      natr,
+                      maxit, epsilon);
     int nfit = fitF["nkpath"]; arma::vec  lamkpath = fitF["lamKpath"];
     arma::vec lamseq = fitF["lamseq"]; arma::cube mukpath = fitF["mukpath"];
     arma::cube etapath = fitF["etapath"]; arma::mat phipath = fitF["phipath"];
@@ -849,7 +1237,7 @@ struct ParCv : public RcppParallel::Worker
   double Dini; const arma::mat Zini; const arma::vec PhiIni;
   const arma::mat Uini; const arma::vec Vini;
   double lmax; const Rcpp::List control;
-  const Rcpp::List zerosol; int maxit; double epsilon;
+  int maxit; double epsilon;
 
   // // destination matrix
   // arma::mat dev, sdcal;
@@ -873,12 +1261,12 @@ struct ParCv : public RcppParallel::Worker
         double Dini, const arma::mat Zini, const arma::vec PhiIni,
         const arma::mat Uini, const arma::vec Vini,
         double lmax , const Rcpp::List control,
-        const Rcpp::List zerosol, int maxit, double epsilon)
+        int maxit, double epsilon)
     : ID(ID),indna(indna),lamseq(lamseq),dev(dev),sdcal(sdcal),tec(tec),
       Y(Y), Xm(Xm),  nlam(nlam), cindex(cindex),
       ofset(ofset), initw(initw) , Dini(Dini), Zini(Zini),
       PhiIni(PhiIni), Uini(Uini), Vini(Vini), lmax(lmax) , control(control),
-      zerosol(zerosol), maxit(maxit), epsilon(epsilon) {}
+      maxit(maxit), epsilon(epsilon) {}
 
 
   // take the square root of the range of elements requested
@@ -904,7 +1292,8 @@ struct ParCv : public RcppParallel::Worker
       fitF =  nbfar_cpp(Ytr, Xm,  nlam, cindex,
                         ofset, initw , Dini, Zini, PhiIni,
                         Uini, Vini, lmax , control, misind,
-                        natr, zerosol, maxit, epsilon);
+                        natr,
+                        maxit, epsilon);
       int nfit = fitF["nkpath"]; arma::vec  lamkpath = fitF["lamKpath"];
       arma::vec lamseqx = fitF["lamseq"]; arma::cube mukpath = fitF["mukpath"];
       arma::cube etapath = fitF["etapath"]; arma::mat phipath = fitF["phipath"];
@@ -933,7 +1322,7 @@ Rcpp::List cv_nbfar_par(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
                         arma::mat  Zini, arma::vec PhiIni,
                         Rcpp::List xx,
                         double lmax, Rcpp::List control,
-                        Rcpp::List zerosol,int maxit, double epsilon,
+                        int maxit, double epsilon,
                         int nfold){
   arma::uvec indna = find_finite(Y);
   arma::vec ID = linspace(0, indna.n_elem-1, indna.n_elem);
@@ -948,7 +1337,7 @@ Rcpp::List cv_nbfar_par(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
   // Constructer of the class
   ParCv cv_nbfar(ID,indna,lamseq,dev,sdcal,tec, Y, Xm,  nlam, cindex,
                  ofset, initw , Dini, Zini, PhiIni, Uini, Vini, lmax , control,
-                 zerosol, maxit, epsilon);
+                 maxit, epsilon);
   parallelFor(0, nfold, cv_nbfar);
   Rcpp::List out;
   out["lamseq"] = cv_nbfar.lamseq;
@@ -957,5 +1346,7 @@ Rcpp::List cv_nbfar_par(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
   out["tec"] = cv_nbfar.tec;
   return out;
 }
+
+
 
 

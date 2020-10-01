@@ -11,7 +11,8 @@ nbrrr(
   cIndex = NULL,
   ofset = NULL,
   control = list(),
-  nfold = 5
+  nfold = 5,
+  trace = FALSE
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ nbrrr(
 \item{control}{a list of internal parameters controlling the model fitting}
 
 \item{nfold}{number of fold for cross-validation}
+
+\item{trace}{checking progress of cross validation error}
 }
 \value{
 \item{C}{estimated coefficient matrix; based on GIC}
