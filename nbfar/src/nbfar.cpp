@@ -454,6 +454,16 @@ double get_sv1(arma::cube xyx, arma::vec ue, int q){
 }
 
 // [[Rcpp::export]]
+double get_sv2(const arma::mat &xyx, const arma::mat &Y, int q){
+  int iter; arma::vec tem(q);
+  for(iter = 0; iter < q; iter++)
+    tem(iter) = as_scalar(xyx.t()*((Y.col(iter)+1)%xyx.each_col()));
+  return(tem.max()/2.0);
+}
+
+
+
+// [[Rcpp::export]]
 double get_sv(const arma::cube &xyx, const arma::vec &ue, int q, arma::uvec tem_uvec){
   // double get_sv( arma::cube xyx,  arma::vec ue, int q, arma::uvec tem_uvec){
   int iter; arma::vec tem(q); arma::mat X2X2;
@@ -726,11 +736,12 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
 
       // update  ve
       tem_uvec = find(ue);
-      sv = get_sv(xyx,ue,q, tem_uvec);
+      // sv = get_sv(xyx,ue,q, tem_uvec);
       grad_mu = grad_mu_nb(Y, MU, Phi);
       if(msind == 1) grad_mu.elem(t4).zeros();
       // cout << " C " << accu(grad_mu) <<  " "<< accu(MU)<<  " "<< accu(C)<<  " "<< accu(ue)<<  " "<< accu(ve) <<  " "<< accu(de) << std::endl;
       xuv =X2.cols(tem_uvec)*ue(tem_uvec);
+      sv = get_sv2(xuv,Y,q);
       xtyv = de*ve - (grad_mu.t()*xuv)/sv;
       plfacv =  (facL.t()*abs(ue))/sv;
       vest = softT(xtyv,plfacv)/(1+2*fac*accu(square(ue))/sv);

@@ -146,6 +146,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// get_sv2
+double get_sv2(const arma::mat& xyx, const arma::mat& Y, int q);
+RcppExport SEXP _nbfar_get_sv2(SEXP xyxSEXP, SEXP YSEXP, SEXP qSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type xyx(xyxSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< int >::type q(qSEXP);
+    rcpp_result_gen = Rcpp::wrap(get_sv2(xyx, Y, q));
+    return rcpp_result_gen;
+END_RCPP
+}
 // get_sv
 double get_sv(const arma::cube& xyx, const arma::vec& ue, int q, arma::uvec tem_uvec);
 RcppExport SEXP _nbfar_get_sv(SEXP xyxSEXP, SEXP ueSEXP, SEXP qSEXP, SEXP tem_uvecSEXP) {
@@ -326,6 +339,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_nbfar_mySdiff", (DL_FUNC) &_nbfar_mySdiff, 2},
     {"_nbfar_nbrrr_cpp", (DL_FUNC) &_nbfar_nbrrr_cpp, 11},
     {"_nbfar_get_sv1", (DL_FUNC) &_nbfar_get_sv1, 3},
+    {"_nbfar_get_sv2", (DL_FUNC) &_nbfar_get_sv2, 3},
     {"_nbfar_get_sv", (DL_FUNC) &_nbfar_get_sv, 4},
     {"_nbfar_softThres", (DL_FUNC) &_nbfar_softThres, 2},
     {"_nbfar_softT", (DL_FUNC) &_nbfar_softT, 2},

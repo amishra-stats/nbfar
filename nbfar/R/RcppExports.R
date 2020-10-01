@@ -41,6 +41,10 @@ get_sv1 <- function(xyx, ue, q) {
     .Call('_nbfar_get_sv1', PACKAGE = 'nbfar', xyx, ue, q)
 }
 
+get_sv2 <- function(xyx, Y, q) {
+    .Call('_nbfar_get_sv2', PACKAGE = 'nbfar', xyx, Y, q)
+}
+
 get_sv <- function(xyx, ue, q, tem_uvec) {
     .Call('_nbfar_get_sv', PACKAGE = 'nbfar', xyx, ue, q, tem_uvec)
 }
