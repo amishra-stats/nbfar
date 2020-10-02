@@ -19,13 +19,13 @@
 #' @examples
 #' control <- nbfar_control()
 #' @useDynLib nbfar
-nbfar_control <- function(maxit = 5000, epsilon = 1e-6,
+nbfar_control <- function(maxit = 5000, epsilon = 1e-7,
                           elnetAlpha = 0.95,
                           gamma0 = 1,
                           spU = 0.5, spV = 0.5,
                           lamMaxFac = 1, lamMinFac = 1e-6,
-                          initmaxit = 2000, initepsilon = 1e-6,
-                          objI = 1) {
+                          initmaxit = 10000, initepsilon = 1e-8,
+                          objI = 0) {
   list(
     lamMaxFac = lamMaxFac,
     lamMinFac = lamMinFac,

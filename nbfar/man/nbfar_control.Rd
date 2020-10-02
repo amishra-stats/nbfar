@@ -6,16 +6,16 @@
 \usage{
 nbfar_control(
   maxit = 5000,
-  epsilon = 1e-06,
+  epsilon = 1e-07,
   elnetAlpha = 0.95,
   gamma0 = 1,
   spU = 0.5,
   spV = 0.5,
   lamMaxFac = 1,
   lamMinFac = 1e-06,
-  initmaxit = 2000,
-  initepsilon = 1e-06,
-  objI = 1
+  initmaxit = 10000,
+  initepsilon = 1e-08,
+  objI = 0
 )
 }
 \arguments{
