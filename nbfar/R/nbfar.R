@@ -321,7 +321,7 @@ nbrrr <- function(Yt, X, maxrank = 10,
   misind <- any(naind == 0) + 0
   if (misind == 1) Yin[is.na(Y)] <- 0
   # init_model <- nbCol(Yin, X0, ofset, naind)
-  init_model <- nbColSp(Y, X0, ofset, cIndex,  naind)
+  init_model <- nbColSp(Y + 1, X0, ofset, cIndex,  naind)
   # init_model <- nbZeroSol(Yin, X0, cIndex, ofset, naind)
   # Z0 <- init_model$C[cIndex,, drop = FALSE]
   Z0 <- init_model$Z
