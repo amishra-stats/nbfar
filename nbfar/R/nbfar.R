@@ -768,7 +768,7 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
     }
     # toc()
     dev.mean <- colMeans(outcv$dev, na.rm = FALSE)
-    l.mean <- which.max(dev.mean) - 1
+    l.mean <- max( which.max(dev.mean) - 1 )
     lamS <- outcv$lamseq[l.mean]
     if (trace) {
       plot(colMeans(outcv$dev, na.rm = FALSE),
@@ -826,7 +826,7 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
                                                 control$epsilon)
       l.mean <- 1
     }
-    save(list=ls(),file= 'aditya.rda')
+    # save(list=ls(),file= 'aditya.rda')
     ## Same as before
     fit.nlayer[[k]]$initw <- initW
     fit.nlayer[[k]]$lamseq <- outcv$lamseq   ## save sequence of lambda path
