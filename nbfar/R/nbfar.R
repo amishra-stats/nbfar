@@ -700,7 +700,7 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
   # Z <- aft$Z
   # PHI <- aft$PHI
 
-  aft <- nbColSp(Y, X0, ofset, cIndex,  naind)
+  aft <- nbColSp(Y + 1, X0, ofset, cIndex,  naind)
   Z <- aft$Z
   PHI <- aft$PHI
   XC <- X0[, -cIndex] %*% aft$C; svdxc <- svd(XC)
