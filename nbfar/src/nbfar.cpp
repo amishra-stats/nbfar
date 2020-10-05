@@ -712,11 +712,11 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
     diffobj.zeros(maxit);obj.zeros(maxit+1);obj2.zeros(5*(maxit+1));
 
     // set initialization for the optimization;
-    // if(norm(C.rows(cIndexC),"fro") == 0){
+    if(norm(C.rows(cIndexC),"fro") == 0){
       ue = Uini; ve = Vini; de = Dini;
       C.rows(cIndex) = Zini;
       Phi = PhiIni;
-    // }
+    }
     C.rows(cIndexC) = de*(ue*ve.t());
     zb =ofset + X0.cols(cIndex)*(C.rows(cIndex));
     xuv = X0.cols(cIndexC)*(C.rows(cIndexC));

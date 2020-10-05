@@ -768,7 +768,7 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
     }
     # toc()
     dev.mean <- colMeans(outcv$dev, na.rm = FALSE)
-    l.mean <- which.max(dev.mean)
+    l.mean <- which.max(dev.mean) - 1
     lamS <- outcv$lamseq[l.mean]
     if (trace) {
       plot(colMeans(outcv$dev, na.rm = FALSE),
