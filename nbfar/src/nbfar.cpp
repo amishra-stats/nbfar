@@ -110,6 +110,24 @@ arma::mat grad_mu_nb(const arma::mat &Y, const arma::mat &mu,
   return(tem);
 }
 
+// [[Rcpp::export]]
+arma::mat grad_mu_nb_uv(const arma::mat &Y, const arma::mat &mu,
+                     const arma::vec &Phi, arma::mat &d2l){
+  // arma::mat grad_mu_nb(arma::mat Y, arma::mat mu,
+  //                      arma::vec Phi){
+  arma::mat tem  = mu, tem1 = mu;
+  tem.each_row() += Phi.t();
+  tem1.each_row() %= Phi.t();
+  tem1 /= tem;
+  d2l = (Y+1)%(tem1/tem);
+  tem = Phi.t()/tem.each_row();
+  // tem = -Y%tem  + tem1;
+  tem %= -Y;  tem += tem1;
+  tem.elem(find_nonfinite(tem) ).zeros();
+  return(tem);
+}
+
+
 // // [[Rcpp::export]]
 // arma::vec xxx(arma::vec Phi){
 //   Phi.subvec(0,3) = linspace(2,5,4);
@@ -690,16 +708,17 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
 
   // defining auxilary variable for the loop
   int iter;
-  double svk=0,suk=0,m1=1,lam,elp,fac,sv,su;
+  double svk=0,suk=0,m1=1,lam,elp,fac,sv,su,suf = norm(xx,2);
   // double de_temp;
   // arma::mat C_temp,MU_temp;
   // arma::vec Phi_temp, ue_temp, ve_temp;
   arma::vec diffobj, obj, obj2, plfacv, plfacu,PhiI, relerror = zeros(nlam);
   arma::vec vest, uest, maxitc = zeros(nlam),convval = zeros(nlam), xtyv, xtyu;
-  arma::mat facW = alp*wd*(wu*wv.t()),facL;
+  arma::mat facW = alp*wd*(wu*wv.t()),facL, d2l = zeros(n,q);
   arma::mat X2Y = X2.t()*Y,X1Y = X1.t()*Y,zb,xuv;
   arma::mat grad_mu, ofset_exp = exp(ofset);
   arma::uvec tem_uvec;
+  arma::vec time_prof = zeros<arma::vec>(5);
 
   // sv = (Y.max()+1)*n/2;
   // su = sqrt(Y.max()+1)*norm(xx,2)/2;
@@ -725,7 +744,7 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
     // MU = ofset_exp%exp(X0*C);
     obj(0) = obj0;
 
-    timer.tic();
+    // timer.tic();
     for(iter = 1; iter < maxit; iter++){
       // C_temp = C;
       // ue_temp = ue; ve_temp = ve; de_temp = de;
@@ -733,15 +752,17 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
       // Phi_temp = Phi;
       // if(msind == 1) MU.elem(t4).zeros(); /////////
 
-
+      timer.tic();
       // update  ve
       tem_uvec = find(ue);
       // sv = get_sv(xyx,ue,q, tem_uvec);
-      grad_mu = grad_mu_nb(Y, MU, Phi);
+      // grad_mu = grad_mu_nb(Y, MU, Phi);
+      grad_mu = grad_mu_nb_uv(Y, MU, Phi, d2l);
       if(msind == 1) grad_mu.elem(t4).zeros();
       // cout << " C " << accu(grad_mu) <<  " "<< accu(MU)<<  " "<< accu(C)<<  " "<< accu(ue)<<  " "<< accu(ve) <<  " "<< accu(de) << std::endl;
       xuv =X2.cols(tem_uvec)*ue(tem_uvec);
-      sv = get_sv2(xuv,Y,q);
+      // sv = get_sv2(xuv,Y,q);
+      sv = n*d2l.max();
       xtyv = de*ve - (grad_mu.t()*xuv)/sv;
       plfacv =  (facL.t()*abs(ue))/sv;
       vest = softT(xtyv,plfacv)/(1+2*fac*accu(square(ue))/sv);
@@ -749,21 +770,28 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
       if(svk==0){
         de = 0;ue.zeros(p);ve.zeros(q);
         C.rows(cIndexC) = 0*C.rows(cIndexC);
-        C.rows(cIndex) = Z00;
-        Phi = PHI00;
+        // C.rows(cIndex) = Z00;
+        // Phi = PHI00;
         break;
       } else {
         de = svk;
         ve = vest/svk;
       }
+      time_prof(0)  += timer.toc();
+
 
       // update ue
       tem_uvec = find(ve); ETA  = zb;
       ETA.cols(tem_uvec) = ETA.cols(tem_uvec) +  xuv*vest(tem_uvec).t();
       MU = exp(ETA);
+      grad_mu = grad_mu_nb_uv(Y, MU, Phi, d2l);
 
-      su = norm(xx + X2.t()*(X2.each_col()%(Y.cols(tem_uvec)*square(ve(tem_uvec)))),2)/2;
-      grad_mu = grad_mu_nb(Y, MU, Phi);
+      timer.tic();
+      su = suf*sqrt((d2l.cols(tem_uvec)*square(ve(tem_uvec))).max());
+      // su = norm(xx + X2.t()*(X2.each_col()%(Y.cols(tem_uvec)*square(ve(tem_uvec)))),2)/2;
+      // su = norm(xx + X2.t()*(X2.each_col()%(Y.cols(tem_uvec)*square(ve(tem_uvec)))),2)/2;
+      time_prof(1)  += timer.toc();
+      // grad_mu = grad_mu_nb(Y, MU, Phi);
       if(msind == 1) grad_mu.elem(t4).zeros();
       xtyu = de*ue - (X2.t()*(grad_mu.cols(tem_uvec)*ve(tem_uvec)))/su;
       plfacu = (facL*abs(ve))/su;
@@ -772,19 +800,24 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
       if(suk==0){
         de = 0;ue.zeros(p);ve.zeros(q);
         C.rows(cIndexC) = 0*C.rows(cIndexC);
-        C.rows(cIndex) = Z00;
-        Phi = PHI00;
+        // C.rows(cIndex) = Z00;
+        // Phi = PHI00;
+        xuv = X2.cols(tem_uvec)*uest(tem_uvec);
         break;
       } else {
         tem_uvec = find(uest);
-        de = as_scalar(sqrt((uest(tem_uvec).t()*X2X2.submat(tem_uvec,tem_uvec)*uest(tem_uvec))));
+        xuv = X2.cols(tem_uvec)*uest(tem_uvec);
+        de = norm(xuv,2)/sqrt(n);
+        // de = as_scalar(sqrt((uest(tem_uvec).t()*X2X2.submat(tem_uvec,tem_uvec)*uest(tem_uvec))));
         ue = uest/de;
       }
       C.rows(cIndexC) = (ue*de)*ve.t();
 
 
+
+      timer.tic();
       // Z-step:
-      xuv = X2.cols(tem_uvec)*uest(tem_uvec);
+      // xuv = X2.cols(tem_uvec)*uest(tem_uvec);
       ETA  = zb;
       tem_uvec = find(ve); xuv = xuv*ve(tem_uvec).t();
       ETA.cols(tem_uvec) = ETA.cols(tem_uvec) +  xuv;
@@ -794,22 +827,25 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
       if(msind == 1) grad_mu.elem(t4).zeros();
       C.rows(cIndex) = C.rows(cIndex) -   X1.t()*grad_mu;
       zb =ofset + X0.cols(cIndex)*C.rows(cIndex);
+      time_prof(2)  += timer.toc();
 
-
+      timer.tic();
       // Phi-step:
       ETA  = zb;  ETA.cols(tem_uvec) = ETA.cols(tem_uvec) +  xuv;
       MU = exp(ETA);
       // if(msind == 1) MU.elem(t4).zeros(); ///////
       Phi = update_mu_alpha(Y, MU, Phi,naind);
+      time_prof(3)  += timer.toc();
 
-
+      timer.tic();
       if(cObj!=0){
         obj(iter) = nb_dev(Y, MU, Phi, naind);
       } else {
         tem_v = nbrrr_likelihood(Y, MU, ETA, Phi, naind);
-        obj(iter) = tem_v(0) + alp*as_scalar(de*lam*wd*(wu.t()*abs(ue))*(wv.t()*abs(ve))) +
+        obj(iter) = -1*tem_v(0) + alp*as_scalar(de*lam*wd*(wu.t()*abs(ue))*(wv.t()*abs(ve))) +
           (1-alp)*lam*(de*de)*as_scalar((ue.t()*ue)*(ve.t()*ve));
       }
+      time_prof(4)  += timer.toc();
       diffobj(iter) = abs((obj(iter) - obj(iter- 1)))/(abs(obj(iter)) + 0.1);
       relerror(ii) = diffobj(iter);
       if (abs(diffobj(iter)) < epsilon ) {
@@ -819,8 +855,9 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
       }
     }
     maxitc(ii) = iter;
-
+    timer.tic();
     elp = timer.toc();
+
     indlam(ii) = ii;
     uklam.col(ik) = ue%sd1(cIndexC);
     vklam.col(ik) = ve;
@@ -877,6 +914,7 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
   out["maxit"] = maxitc;
   out["converge"] = convval;
   out["converge_error"] = relerror;
+  out["time_prof"] = time_prof;
   return(out);
 }
 

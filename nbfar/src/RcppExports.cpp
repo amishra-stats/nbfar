@@ -58,6 +58,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// grad_mu_nb_uv
+arma::mat grad_mu_nb_uv(const arma::mat& Y, const arma::mat& mu, const arma::vec& Phi, arma::mat& d2l);
+RcppExport SEXP _nbfar_grad_mu_nb_uv(SEXP YSEXP, SEXP muSEXP, SEXP PhiSEXP, SEXP d2lSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type Phi(PhiSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type d2l(d2lSEXP);
+    rcpp_result_gen = Rcpp::wrap(grad_mu_nb_uv(Y, mu, Phi, d2l));
+    return rcpp_result_gen;
+END_RCPP
+}
 // update_mu_phi
 arma::vec update_mu_phi(arma::mat Y, arma::mat mu, arma::vec Phi);
 RcppExport SEXP _nbfar_update_mu_phi(SEXP YSEXP, SEXP muSEXP, SEXP PhiSEXP) {
@@ -333,6 +347,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_nbfar_get_sc", (DL_FUNC) &_nbfar_get_sc, 2},
     {"_nbfar_grad_eta_nb", (DL_FUNC) &_nbfar_grad_eta_nb, 3},
     {"_nbfar_grad_mu_nb", (DL_FUNC) &_nbfar_grad_mu_nb, 3},
+    {"_nbfar_grad_mu_nb_uv", (DL_FUNC) &_nbfar_grad_mu_nb_uv, 4},
     {"_nbfar_update_mu_phi", (DL_FUNC) &_nbfar_update_mu_phi, 3},
     {"_nbfar_update_mu_alpha", (DL_FUNC) &_nbfar_update_mu_alpha, 4},
     {"_nbfar_nbrrr_likelihood", (DL_FUNC) &_nbfar_nbrrr_likelihood, 5},

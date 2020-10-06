@@ -321,7 +321,7 @@ nbrrr <- function(Yt, X, maxrank = 10,
   misind <- any(naind == 0) + 0
   if (misind == 1) Yin[is.na(Y)] <- 0
   # init_model <- nbCol(Yin, X0, ofset, naind)
-  init_model <- nbColSp(Y + 1, X0, ofset, cIndex,  naind)
+  init_model <- nbColSp(Y, X0, ofset, cIndex,  naind)
   # init_model <- nbZeroSol(Yin, X0, cIndex, ofset, naind)
   # Z0 <- init_model$C[cIndex,, drop = FALSE]
   Z0 <- init_model$Z
@@ -367,7 +367,7 @@ nbrrr <- function(Yt, X, maxrank = 10,
       # tryCatch({
 
       fitT[[ifold]] <- nbrrr_cpp(Ytr, X0, k, cIndex, ofset,
-                                 Z0,  PHI0, C0, control,
+                                 Z0,  PHI0, 0*C0, control,
                                  misind, naind2)
 
       cat('Fold ', ifold, ': [Error,iteration] = [',
@@ -406,7 +406,7 @@ nbrrr <- function(Yt, X, maxrank = 10,
   control_nbrr$initepsilon <- 0.01*control_nbrr$initepsilon
   Y[is.na(Y)] <- 0
   C0 <- Uk[, 1:rank_sel] %*% (Dk[1:rank_sel]*t(Vk[, 1:rank_sel]))
-  out <- nbrrr_cpp(Y, X0, rank_sel, cIndex, ofset, Z0,  PHI0, C0,
+  out <- nbrrr_cpp(Y, X0, rank_sel, cIndex, ofset, Z0,  PHI0, 0*C0,
                    control_nbrr, misind, naind)
   # save(list=ls(),file= 'aditya.rda')
 
@@ -700,7 +700,7 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
   # Z <- aft$Z
   # PHI <- aft$PHI
 
-  aft <- nbColSp(Y + 1, X0, ofset, cIndex,  naind)
+  aft <- nbColSp(Y , X0, ofset, cIndex,  naind)
   Z <- aft$Z
   PHI <- aft$PHI
   XC <- X0[, -cIndex] %*% aft$C; svdxc <- svd(XC)
@@ -722,7 +722,7 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
     control_nbrrr <- control # nbfar_control()
     control_nbrrr$objI <- 1
     xx <- nbrrr_cpp(Yf2, X0, 1, cIndex, ofset,
-                    Z,  PHI, aft$C, # -  0*U[, 1:k] %*% (D[1:k]*t( V[, 1:k])),
+                    Z,  PHI, 0*aft$C, # -  0*U[, 1:k] %*% (D[1:k]*t( V[, 1:k])),
                     control_nbrrr,
                     misind22, naind22)
 
@@ -801,15 +801,16 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
                                                 lmax = lambda.max,
                                                 control1,misind,
                                                 naind,
-                                                control$maxit,
-                                                control$epsilon)
+                                                control1$maxit,
+                                                control1$epsilon)
       l.mean <- which(fit.layer$lamKpath == lamS)
       if ( length(l.mean) == 0) {
         l.mean <- 1;
       }
     } else {
       control1 <- control
-      control1$lamMinFac <- 1; control1$epsilon = 1e-12
+      control1$lamMinFac <- 1; control1$epsilon = 0.001*control$epsilon
+
       fit.nlayer[[k]] <- fit.layer <- nbfar_cpp(Yf,X0, nlam = 1,
                                                 cindex = cIndex,
                                                 ofset = ofset,
@@ -822,8 +823,8 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
                                                 lmax = lamS,
                                                 control1,misind,
                                                 naind,
-                                                control$maxit,
-                                                control$epsilon)
+                                                control1$maxit,
+                                                control1$epsilon)
       l.mean <- 1
     }
     # save(list=ls(),file= 'aditya.rda')

@@ -17,6 +17,10 @@ grad_mu_nb <- function(Y, mu, Phi) {
     .Call('_nbfar_grad_mu_nb', PACKAGE = 'nbfar', Y, mu, Phi)
 }
 
+grad_mu_nb_uv <- function(Y, mu, Phi, d2l) {
+    .Call('_nbfar_grad_mu_nb_uv', PACKAGE = 'nbfar', Y, mu, Phi, d2l)
+}
+
 update_mu_phi <- function(Y, mu, Phi) {
     .Call('_nbfar_update_mu_phi', PACKAGE = 'nbfar', Y, mu, Phi)
 }
