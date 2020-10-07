@@ -128,6 +128,8 @@ arma::mat grad_mu_nb_uv(const arma::mat &Y, const arma::mat &mu,
 }
 
 
+
+
 // // [[Rcpp::export]]
 // arma::vec xxx(arma::vec Phi){
 //   Phi.subvec(0,3) = linspace(2,5,4);
@@ -340,6 +342,7 @@ arma::uvec mySdiff(arma::uvec x, arma::uvec y){
 
 
 
+
 // X;Y;Z;O;r; Zini, PhiIni; ndev[ for convergence critteria]
 // [[Rcpp::export]]
 Rcpp::List nbrrr_cpp(arma::mat Y, arma::mat X0, int rnk, arma::vec cindex,
@@ -513,13 +516,6 @@ int nzcount(arma::vec x) {
 }
 
 
-double expm1_maclaurin( double x )
-{
-  const double order = 10;
-  double retval = 1.0;
-  for( int i = order ; 1 < i ; --i ) retval = 1.0 + x*retval/i;
-  return x*retval;
-}
 
 
 
@@ -790,7 +786,7 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
       su = suf*sqrt((d2l.cols(tem_uvec)*square(ve(tem_uvec))).max());
       // su = norm(xx + X2.t()*(X2.each_col()%(Y.cols(tem_uvec)*square(ve(tem_uvec)))),2)/2;
       // su = norm(xx + X2.t()*(X2.each_col()%(Y.cols(tem_uvec)*square(ve(tem_uvec)))),2)/2;
-      time_prof(1)  += timer.toc();
+
       // grad_mu = grad_mu_nb(Y, MU, Phi);
       if(msind == 1) grad_mu.elem(t4).zeros();
       xtyu = de*ue - (X2.t()*(grad_mu.cols(tem_uvec)*ve(tem_uvec)))/su;
@@ -812,7 +808,7 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
         ue = uest/de;
       }
       C.rows(cIndexC) = (ue*de)*ve.t();
-
+      time_prof(1)  += timer.toc();
 
 
       timer.tic();
@@ -919,285 +915,6 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
 }
 
 
-
-
-// [[Rcpp::export]]
-Rcpp::List nbfar_cppx(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
-                     arma::mat ofset, Rcpp::List initw,
-                     double Dini, arma::mat  Zini, arma::vec PhiIni,
-                     arma::mat  Uini, arma::vec Vini,
-                     double lmax, Rcpp::List control,
-                     int msind, arma::mat naind,
-                     Rcpp::List zerosol,int maxit, double epsilon){
-
-  arma::mat X0 = Xm, sd0 = stddev(Xm);
-  sd0.elem( find(sd0 == 0) ).ones(); sd0.ones();
-  sd0 = 1/sd0;
-  X0.each_row() %= sd0;
-  arma::vec sd1  = conv_to< arma::vec >::from(sd0);
-  arma::vec tem_v;
-
-
-  // Extract parameter
-  // bool converged=false;
-  int pt = X0.n_cols, q = Y.n_cols, n = Y.n_rows,ii=0;
-  int p = pt - cindex.n_elem, eea = 0;
-  int cObj = control["objI"];
-  double alp = control["elnetAlpha"];
-  double spu = control["spU"], spv = control["spV"];
-  double wd =  initw["wd"], gamma0 = control["gamma0"];
-  arma::vec wu = initw["wu"], wv = initw["wv"];
-  arma::uvec cIndex =  arma::conv_to< uvec >::from(cindex-1);
-  arma::uvec cIndexC = mySdiff(linspace<uvec>(0,pt-1,pt), cIndex);
-  arma::mat X2 = X0.cols(cIndexC),X1 = X0.cols(cIndex), X3 =X0;
-  double sb = get_sc(X1, Y); X1 =  X1/sb;
-  arma::mat xx = X2.t()*X2, X2X2, Y_l = lgamma(Y+1); X2X2 = xx/n;
-  arma::cube xyx = zeros(p,p,q);
-  for(ii=0; ii < q; ii++) xyx.slice(ii) = X2.t()*(X2.each_col()%(Y.col(ii)+1));
-  if(eea==1) X2X2 = diagmat(ones<vec>(X2.n_cols));
-  // generate sequence of lambda
-  double tem = control["lamMaxFac"];
-  double lmx = tem*lmax; tem  = control["lamMinFac"];
-  double lmn = lmax*tem;
-  arma::uvec t4=find(naind==0);
-  arma::vec lamSeq =  exp(linspace<vec>(log(lmx),  log(lmn), nlam));
-
-
-  // ------------ define  path vaariable
-  arma::mat uklam = zeros(p,nlam+1),vklam = zeros(q,nlam+1);
-  arma::mat philam = zeros(q,nlam+1), BIClam = zeros(4,nlam+1);
-  arma::mat objval = zeros(maxit+1,nlam+1);
-  arma::vec dklam = zeros(nlam+1),lselectSeq = zeros(nlam+1);
-  arma::vec indlam = zeros(nlam+1),execTime = zeros(nlam+1);
-  arma::cube zpath = zeros(pt-p,q,nlam+1),Ckpath= zeros(pt,q,nlam+1);
-  arma::cube MUkpath = zeros(n,q,nlam+1), ETAkpath = zeros(n,q,nlam+1);
-
-  //  -------- Inittialization, weight for penalty
-  //  Update u^0, v^0, d^0,z^0, phi^0 estimate
-  Uini = Uini%(1/sd0(cIndexC)); wu = pow(abs(Uini),-1.0*gamma0);
-  Zini.each_col() %= (1/sd0(cIndex));
-  // Solution for largest lambda [ue = ve = de = 0]
-  arma::mat C = zeros(pt,q), Ct, Z00 = zerosol["Z"];
-  Z00.each_col() %= (1/sd0(cIndex));
-  C.rows(cIndex) = Z00;
-  // C.each_col() %= (1/sd0.t());
-  arma::vec Phi = zerosol["PHI"], PHI00 = zerosol["PHI"];
-  arma::vec ue = zeros(p),ve = zeros(q);
-  double de = 0;
-  C.rows(cIndexC) = de*(ue*ve.t());
-  arma::mat ETA = ofset + X0*C;
-  arma::mat MU = exp(ETA);
-  if(msind == 1) MU.elem(t4).zeros();
-  // tem_v = nbrrr_likelihoodx(Y, MU, ETA, Phi, naind, Y_l);
-  tem_v = nbrrr_likelihood(Y, MU, ETA, Phi, naind);
-  double obj0 = tem_v(0);
-
-  // Model fit intital
-  int ik = 0;
-  double df = (pt-p)*q, qn = accu(naind);
-  double SSE = nb_dev(Y, MU, Phi, naind)/qn;
-  BIClam(0,ik) = SSE + (df*log((double)qn))/(qn); //BIC
-  BIClam(1,ik) = SSE + 2*df*log((double) pt*q)/(qn); //BICP
-  BIClam(2,ik) = SSE + log(log( (double) qn))*df*log((double) pt*q)/(qn); //GIC
-  BIClam(3,ik) = SSE + (2/qn)*(df); //AIC
-  Ct = C; Ct = Ct.each_col()%sd0.t();
-  Ckpath.slice(ik) = Ct; MUkpath.slice(ik) = MU;
-  ETAkpath.slice(ik) = ETA;
-  zpath.slice(ik) = Ct.rows(cIndex);
-  philam.col(ik) = Phi;
-
-
-
-  // defining auxilary variable for the loop
-  int iter;
-  double svk=0,suk=0,m1=1,lam,elp,fac,sv,su;
-  // double de_temp;
-  // arma::mat C_temp,MU_temp;
-  // arma::vec Phi_temp, ue_temp, ve_temp;
-  arma::vec diffobj, obj, obj2, plfacv, plfacu,PhiI, relerror = zeros(nlam);
-  arma::vec vest, uest, maxitc = zeros(nlam),convval = zeros(nlam), xtyv, xtyu;
-  arma::mat facW = alp*wd*(wu*wv.t()),facL;
-  arma::mat X2Y = X2.t()*Y,X1Y = X1.t()*Y,zb,xuv;
-  arma::mat grad_mu, ofset_exp = exp(ofset);
-  arma::uvec tem_uvec;
-
-  // sv = (Y.max()+1)*n/2;
-  // su = sqrt(Y.max()+1)*norm(xx,2)/2;
-  // converggence: dev/obj
-  wall_clock timer;
-  for(ii=0; ii < nlam; ii++){
-    lam = lamSeq(ii);
-    facL = lam*facW;
-    fac=(1-alp)*lam;
-    diffobj.zeros(maxit);obj.zeros(maxit+1);obj2.zeros(5*(maxit+1));
-
-    // set initialization for the optimization;
-    if(norm(C.rows(cIndexC),"fro") == 0){
-      ue = Uini; ve = Vini; de = Dini;
-      C.rows(cIndex) = Zini;
-      Phi = PhiIni;
-    }
-    C.rows(cIndexC) = de*(ue*ve.t());
-    zb =ofset + X0.cols(cIndex)*(C.rows(cIndex));
-    xuv = X0.cols(cIndexC)*(C.rows(cIndexC));
-    // MU = ofset_exp%exp(X0*C);
-    MU = exp(zb + xuv);
-    // MU = ofset_exp%exp(X0*C);
-    obj(0) = obj0;
-
-    timer.tic();
-    for(iter = 1; iter < maxit; iter++){
-      // C_temp = C;
-      // ue_temp = ue; ve_temp = ve; de_temp = de;
-      // MU_temp = MU;
-      // Phi_temp = Phi;
-      // if(msind == 1) MU.elem(t4).zeros(); /////////
-
-
-      // update  ve
-      tem_uvec = find(ue);
-      sv = get_sv(xyx,ue,q, tem_uvec);
-      grad_mu = grad_mu_nb(Y, MU, Phi);
-      if(msind == 1) grad_mu.elem(t4).zeros();
-      // cout << " C " << accu(grad_mu) <<  " "<< accu(MU)<<  " "<< accu(C)<<  " "<< accu(ue)<<  " "<< accu(ve) <<  " "<< accu(de) << std::endl;
-      xuv =X2.cols(tem_uvec)*ue(tem_uvec);
-      xtyv = de*ve - (grad_mu.t()*xuv)/sv;
-      plfacv =  (facL.t()*abs(ue))/sv;
-      vest = softT(xtyv,plfacv)/(1+2*fac*accu(square(ue))/sv);
-      svk = norm( vest,2);
-      if(svk==0){
-        de = 0;ue.zeros(p);ve.zeros(q);
-        C.rows(cIndexC) = 0*C.rows(cIndexC);
-        // C.rows(cIndex) = Z00;
-        // Phi = PHI00;
-        break;
-      } else {
-        de = svk;
-        ve = vest/svk;
-      }
-
-      // update ue
-      tem_uvec = find(ve); ETA  = zb;
-      ETA.cols(tem_uvec) = ETA.cols(tem_uvec) +  xuv*vest(tem_uvec).t();
-      MU = exp(ETA);
-
-      su = norm(xx + X2.t()*(X2.each_col()%(Y.cols(tem_uvec)*square(ve(tem_uvec)))),2)/2;
-      grad_mu = grad_mu_nb(Y, MU, Phi);
-      if(msind == 1) grad_mu.elem(t4).zeros();
-      xtyu = de*ue - (X2.t()*(grad_mu.cols(tem_uvec)*ve(tem_uvec)))/su;
-      plfacu = (facL*abs(ve))/su;
-      uest = softT(xtyu,plfacu)/(1+2*fac/su);
-      suk = norm(uest,2);
-      if(suk==0){
-        de = 0;ue.zeros(p);ve.zeros(q);
-        C.rows(cIndexC) = 0*C.rows(cIndexC);
-        // C.rows(cIndex) = Z00;
-        // Phi = PHI00;
-        break;
-      } else {
-        tem_uvec = find(uest);
-        de = as_scalar(sqrt((uest(tem_uvec).t()*X2X2.submat(tem_uvec,tem_uvec)*uest(tem_uvec))));
-        ue = uest/de;
-      }
-      C.rows(cIndexC) = (ue*de)*ve.t();
-
-
-      // Z-step:
-      xuv = X2.cols(tem_uvec)*uest(tem_uvec);
-      ETA  = zb;
-      tem_uvec = find(ve); xuv = xuv*ve(tem_uvec).t();
-      ETA.cols(tem_uvec) = ETA.cols(tem_uvec) +  xuv;
-      MU = exp(ETA);
-      // if(msind == 1) MU.elem(t4).zeros(); /////// 2
-      grad_mu = grad_mu_nb(Y, MU, Phi);
-      if(msind == 1) grad_mu.elem(t4).zeros();
-      C.rows(cIndex) = C.rows(cIndex) -   X1.t()*grad_mu;
-      zb =ofset + X0.cols(cIndex)*C.rows(cIndex);
-
-
-      // Phi-step:
-      ETA  = zb;  ETA.cols(tem_uvec) = ETA.cols(tem_uvec) +  xuv;
-      MU = exp(ETA);
-      // if(msind == 1) MU.elem(t4).zeros(); ///////
-      Phi = update_mu_alpha(Y, MU, Phi,naind);
-
-
-      if(cObj!=0){
-        obj(iter) = nb_dev(Y, MU, Phi, naind);
-      } else {
-        tem_v = nbrrr_likelihood(Y, MU, ETA, Phi, naind);
-        obj(iter) = tem_v(0) + alp*as_scalar(de*lam*wd*(wu.t()*abs(ue))*(wv.t()*abs(ve))) +
-          (1-alp)*lam*(de*de)*as_scalar((ue.t()*ue)*(ve.t()*ve));
-      }
-      diffobj(iter) = abs((obj(iter) - obj(iter- 1)))/(abs(obj(iter)) + 0.1);
-      relerror(ii) = diffobj(iter);
-      if (abs(diffobj(iter)) < epsilon ) {
-        // converged = true;
-        convval(ii) = 1;
-        break;
-      }
-    }
-    maxitc(ii) = iter;
-
-    elp = timer.toc();
-    indlam(ii) = ii;
-    uklam.col(ik) = ue%sd1(cIndexC);
-    vklam.col(ik) = ve;
-    philam.col(ik) = Phi;
-    dklam(ik) = de;
-    C.rows(cIndexC) = de*(ue*ve.t());
-    if(eea==1){
-      m1 = norm(uklam.col(ik),2);
-      uklam.col(ik) = uklam.col(ik)/m1;
-      dklam(ik) = m1*dklam(ik);
-    }
-    lselectSeq(ik) = lam;
-    objval.col(ik) = obj;//
-    execTime(ik) = elp;
-
-
-    Ct = C;
-    Ct.each_col() %= sd0.t();
-    zpath.slice(ik) = Ct.rows(cIndex);
-    Ckpath.slice(ik) = Ct;
-
-    ETA = ofset + X0*C; ///////
-    MU = exp(ETA); ///////
-    SSE = nb_dev(Y, MU, Phi, naind)/qn;
-    df = nzcount(ue) + nzcount(ve)  +(pt-p)*q -1;
-
-    BIClam(0,ik) = SSE + (df*log((double)qn))/(qn); //BIC
-    BIClam(1,ik) = SSE + 2*df*log((double) pt*q)/(qn); //BICP
-    BIClam(2,ik) = SSE + log(log( (double) qn))*df*log((double) pt*q)/(qn); //GIC
-    BIClam(3,ik) = SSE + (2/qn)*(df); //AIC
-    MUkpath.slice(ik) = MU;
-    ETAkpath.slice(ik) = ETA;
-    ik = ik+1;
-
-    if( (iter>1) && ((nzcount(ue) > (p*spu)) || (nzcount(ve) > (q*spv)))  ) {break;}
-  }
-  ik = ik-1;
-
-  Rcpp::List out;
-  out["ukpath"] = uklam.cols(0,ik);
-  out["vkpath"] = vklam.cols(0,ik);
-  out["dkpath"] = arma::conv_to<arma::vec>::from(dklam.head(ik+1)) ;
-  out["phipath"] = philam.cols(0,ik);
-  out["zpath"] = arma::conv_to<arma::cube>::from(zpath.head_slices(ik+1));
-  out["mukpath"] = arma::conv_to<arma::cube>::from(MUkpath.head_slices(ik+1));
-  out["etapath"] = arma::conv_to<arma::cube>::from(ETAkpath.head_slices(ik+1));
-  out["ICKpath"] = BIClam.cols(0,ik);
-  out["nkpath"] = ik+1;
-  out["objkval"] = objval.cols(0,ik);
-  out["Ckpath"] = arma::conv_to<arma::cube>::from(Ckpath.head_slices(ik+1));
-  out["lamKpath"] = arma::conv_to<arma::vec>::from(lselectSeq.head(ik+1));
-  out["ExecTimekpath"] = arma::conv_to<arma::vec>::from(execTime.head(ik+1));
-  out["lamseq"] = lamSeq;
-  out["maxit"] = maxitc;
-  out["converge"] = convval;
-  out["converge_error"] = relerror;
-  return(out);
-}
 
 
 
