@@ -933,12 +933,12 @@ Rcpp::List cv_nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
   arma::mat Ytr(size(Y)), Yte(size(Y)), natr(size(Y)), nate(size(Y));
   arma::uvec indna = find_finite(Y),teIndex, trIndex;
   arma::vec ID = linspace(0, indna.n_elem-1, indna.n_elem);
-  ID = ID - 5*floor(ID/5); ID = ID(randperm(indna.n_elem));
+  ID = ID - nfold*floor(ID/nfold); ID = ID(randperm(indna.n_elem));
   int misind,insel;
   Rcpp::List fitF;
   double Dini = xx["D"],lam;
   arma::mat  Uini = xx["U"]; arma::vec Vini  = xx["V"];
-  arma::vec phiest, tttval(3), tec(5);
+  arma::vec phiest, tttval(3), tec(nfold);
   arma::mat mutest, etatest;
   arma::mat dev(nfold, nlam), sdcal(nfold, nlam);
   dev.fill(datum::nan); sdcal.fill(datum::nan);
@@ -1092,7 +1092,7 @@ Rcpp::List cv_nbfar_par(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
                         int nfold){
   arma::uvec indna = find_finite(Y);
   arma::vec ID = linspace(0, indna.n_elem-1, indna.n_elem);
-  ID = ID - 5*floor(ID/5); ID = ID(randperm(indna.n_elem));
+  ID = ID - nfold*floor(ID/nfold); ID = ID(randperm(indna.n_elem));
   // input
   double Dini = xx["D"];
   arma::mat  Uini = xx["U"]; arma::vec Vini  = xx["V"];
