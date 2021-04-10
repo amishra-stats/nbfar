@@ -69,7 +69,7 @@ nbCol <- function(Y, X0, ofset, naind) {
 
 #' Simulate data for negative binomial factor regression
 #'
-#' Genertate random samples from a negative binomial sparse factor regression model
+#' Generate random samples from a negative binomial factor regression model
 #'
 #' @param U specified value of U
 #' @param V specified value of V
@@ -210,7 +210,7 @@ nbfar_sim <- function(U, D, V, n, Xsigma, C0,disp,depth) {
 
 #' Negative binomial reduced rank regression
 #'
-#' Divide and conquer approach for low-rank and sparse coefficent matrix estimation: Exclusive extraction
+#' Compute 1 to marxrank coefficient matrix in the NBRRR model and perform cross validation to select a coefficient matrix of rank r
 #'
 #' @param Yt response matrix
 #' @param X covariate matrix; when X = NULL, the fucntion performs unsupervised learning
@@ -576,7 +576,7 @@ nbZeroSol <- function(Y, X0, c_index, ofset, naind) {
 
 #' Negative binomial co-sparse factor regression
 #'
-#' Divide and conquer approach for low-rank and sparse coefficent matrix estimation: Sequential
+#' Model parameter estimation using sequential approach. The algorith automatically stops after extracting sufficient unit rank components.
 #'
 #' @param Yt response matrix
 #' @param X covariate matrix; when X = NULL, the fucntion performs unsupervised learning

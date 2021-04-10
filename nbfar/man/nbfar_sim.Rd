@@ -28,7 +28,7 @@ nbfar_sim(U, D, V, n, Xsigma, C0, disp, depth)
   \item{X}{Generated predictor matrix}
 }
 \description{
-Genertate random samples from a negative binomial sparse factor regression model
+Generate random samples from a negative binomial factor regression model
 }
 \examples{
 ## Model specification:

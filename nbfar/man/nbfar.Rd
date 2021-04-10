@@ -50,7 +50,7 @@ nbfar(
   \item{V}{estimated V matrix (factor loadings)}
 }
 \description{
-Divide and conquer approach for low-rank and sparse coefficent matrix estimation: Sequential
+Model parameter estimation using sequential approach. The algorith automatically stops after extracting sufficient unit rank components.
 }
 \examples{
 \donttest{

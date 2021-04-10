@@ -41,7 +41,7 @@ nbrrr(
   \item{V}{estimated V matrix (factor loadings)}
 }
 \description{
-Divide and conquer approach for low-rank and sparse coefficent matrix estimation: Exclusive extraction
+Compute 1 to marxrank coefficient matrix in the NBRRR model and perform cross validation to select a coefficient matrix of rank r
 }
 \examples{
 \donttest{
