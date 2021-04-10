@@ -2,7 +2,7 @@
 % Please edit documentation in R/nbfar.R
 \name{nbfar_sim}
 \alias{nbfar_sim}
-\title{Simulate data}
+\title{Simulate data for negative binomial factor regression}
 \usage{
 nbfar_sim(U, D, V, n, Xsigma, C0, disp, depth)
 }

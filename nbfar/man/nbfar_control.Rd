@@ -2,7 +2,7 @@
 % Please edit documentation in R/nbfar.R
 \name{nbfar_control}
 \alias{nbfar_control}
-\title{Default control parameters for Generalized co-sparse factor regresion}
+\title{Default control parameters for negative binomial factor regression}
 \usage{
 nbfar_control(
   maxit = 5000,
@@ -45,7 +45,7 @@ nbfar_control(
 a list of controling parameter.
 }
 \description{
-Control parameters for NBFAR
+Control parameters for NBFAR and NBRRR
 }
 \examples{
 control <- nbfar_control()

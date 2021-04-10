@@ -2,7 +2,7 @@
 % Please edit documentation in R/nbfar.R
 \name{nbrrr}
 \alias{nbrrr}
-\title{Generalize Exclusive factor extraction via co-sparse unit-rank estimation (GOFAR(P)) using k-fold crossvalidation}
+\title{Negative binomial reduced rank regression}
 \usage{
 nbrrr(
   Yt,

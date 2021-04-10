@@ -1,7 +1,7 @@
 
-#' Default control parameters for Generalized co-sparse factor regresion
+#' Default control parameters for negative binomial factor regression
 #'
-#' Control parameters for NBFAR
+#' Control parameters for NBFAR and NBRRR
 #'
 #' @param lamMaxFac a multiplier of calculated lambda_max
 #' @param lamMinFac a multiplier of determing lambda_min as a fraction of lambda_max
@@ -67,7 +67,7 @@ nbCol <- function(Y, X0, ofset, naind) {
 
 
 
-#' Simulate data
+#' Simulate data for negative binomial factor regression
 #'
 #' Genertate random samples from a negative binomial sparse factor regression model
 #'
@@ -208,7 +208,7 @@ nbfar_sim <- function(U, D, V, n, Xsigma, C0,disp,depth) {
 
 
 
-#' Generalize Exclusive factor extraction via co-sparse unit-rank estimation (GOFAR(P)) using k-fold crossvalidation
+#' Negative binomial reduced rank regression
 #'
 #' Divide and conquer approach for low-rank and sparse coefficent matrix estimation: Exclusive extraction
 #'
@@ -229,6 +229,8 @@ nbfar_sim <- function(U, D, V, n, Xsigma, C0,disp,depth) {
 #'   \item{V}{estimated V matrix (factor loadings)}
 #' @export
 #' @import magrittr
+#' @importFrom Rcpp evalCpp
+#' @importFrom graphics title
 #' @useDynLib nbfar
 #' @examples
 #' \donttest{
@@ -388,7 +390,7 @@ nbrrr <- function(Yt, X, maxrank = 10,
     if (trace) {
       plot(colMeans(dev, na.rm = T),
            xlab = 'Rank ', ylab = 'Log-Likelihood')
-      title(paste('Component ', k))
+      graphics::title(paste('Component ', k))
       Sys.sleep(0.5)
       }
 
@@ -572,7 +574,7 @@ nbZeroSol <- function(Y, X0, c_index, ofset, naind) {
 # plot(log(nbrrr_test$diffobj[nbrrr_test$diffobj>0]))
 
 
-#' Generalize Sequential factor extraction via co-sparse unit-rank estimation (GOFAR(S)) using k-fold crossvalidation
+#' Negative binomial co-sparse factor regression
 #'
 #' Divide and conquer approach for low-rank and sparse coefficent matrix estimation: Sequential
 #'
@@ -597,6 +599,8 @@ nbZeroSol <- function(Y, X0, c_index, ofset, naind) {
 #' @export
 #' @useDynLib nbfar
 #' @importFrom RcppParallel RcppParallelLibs setThreadOptions
+#' @importFrom Rcpp evalCpp
+#' @importFrom graphics title
 #' @examples
 #' \donttest{
 #' ## Model specification:
@@ -774,7 +778,7 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
     if (trace) {
       plot(colMeans(outcv$dev, na.rm = FALSE),
            xlab = 'Lambda index', ylab = 'Log-likelihood')
-      title(paste('Component ', k))
+      graphics::title(paste('Component ', k))
       Sys.sleep(0.5)
       }
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/nbfar.R
 \name{nbfar}
 \alias{nbfar}
-\title{Generalize Sequential factor extraction via co-sparse unit-rank estimation (GOFAR(S)) using k-fold crossvalidation}
+\title{Negative binomial co-sparse factor regression}
 \usage{
 nbfar(
   Yt,

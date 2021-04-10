@@ -6,6 +6,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // nb_dev
 double nb_dev(arma::mat Y, arma::mat MU, arma::vec Phi, arma::mat naind);
 RcppExport SEXP _nbfar_nb_dev(SEXP YSEXP, SEXP MUSEXP, SEXP PhiSEXP, SEXP naindSEXP) {
