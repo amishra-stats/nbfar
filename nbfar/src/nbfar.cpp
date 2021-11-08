@@ -604,7 +604,7 @@ Rcpp::List nbzerosol_cpp(arma::mat Y, arma::mat X0,
   // out["objval"] = obj;
   // out["diffobj"] = diffobj;
   out["converged"] = converged;
-  // out["ExecTimekpath"] = elp;
+  out["ExecTimekpath"] = elp;
   out["maxit"] = iter;
   out["converge"] = 0;
   if(converged) out["converge"] = 1;
