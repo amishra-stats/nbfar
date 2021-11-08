@@ -87,6 +87,9 @@ offset_sacling = function(Y, ofset){
   } else if (tolower(ofset) == 'clr'){
     ofset <- matrix(rowSums(log(Y + (Y == 0)), na.rm = T)/q,n,q)
     return(ofset)
+  } else if (is.null(ofset)) {
+    ofset <- matrix(0, nrow = n, ncol = q)
+    return(ofset)
   }
 }
 
