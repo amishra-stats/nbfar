@@ -68,6 +68,7 @@ nbCol <- function(Y, X0, ofset, naind) {
 
 #' @param Y outcome matrix
 #' @param ofset offset matrix or microbiome data analysis specific scaling: common sum scaling = CSS (default), total sum scaling = TSS, median-ratio scaling = MRS, centered-log-ratio scaling  = CLR
+#' @importFrom stats median
 offset_sacling = function(Y, ofset){
   n <- nrow(Y)
   q <- ncol(Y)

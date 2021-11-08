@@ -614,6 +614,7 @@ Rcpp::List nbzerosol_cpp(arma::mat Y, arma::mat X0,
 
 
 
+
 // [[Rcpp::export]]
 Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
                      arma::mat ofset, Rcpp::List initw,
