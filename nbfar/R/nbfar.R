@@ -72,7 +72,10 @@ nbCol <- function(Y, X0, ofset, naind) {
 offset_sacling = function(Y, ofset){
   n <- nrow(Y)
   q <- ncol(Y)
-  if (is.matrix(ofset)){
+  if (is.null(ofset)) {
+    ofset <- matrix(0, nrow = n, ncol = q)
+    return(ofset)
+  } else if (is.matrix(ofset)){
     return(ofset)
   } else if (tolower(ofset) == 'css'){
     ofset <- matrix(0, nrow = n, ncol = q)
@@ -86,9 +89,6 @@ offset_sacling = function(Y, ofset){
     return(ofset)
   } else if (tolower(ofset) == 'clr'){
     ofset <- matrix(rowSums(log(Y + (Y == 0)), na.rm = T)/q,n,q)
-    return(ofset)
-  } else if (is.null(ofset)) {
-    ofset <- matrix(0, nrow = n, ncol = q)
     return(ofset)
   }
 }
