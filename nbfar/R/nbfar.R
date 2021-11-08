@@ -326,7 +326,7 @@ nbfar_sim <- function(U, D, V, n, Xsigma, C0,disp,depth) {
 #' #                       control = control_nbrr, nfold = 5)
 #' }
 nbrrr <- function(Yt, X, maxrank = 10,
-                  cIndex = NULL, ofset = c('CSS','TSS','MRS','CLR')[1],
+                  cIndex = NULL, ofset = NULL,
                   control = list(), nfold = 5, trace = FALSE) {
   cat("Initializing...", "\n")
   n <- nrow(Yt)
@@ -346,8 +346,8 @@ nbrrr <- function(Yt, X, maxrank = 10,
   }
 
   ## Initialization
-  # ofset <- offset_sacling(Y, ofset)
-  if (is.null(ofset)) ofset <- matrix(0, nrow = n, ncol = q)
+  ofset <- offset_sacling(Y, ofset)
+  # if (is.null(ofset)) ofset <- matrix(0, nrow = n, ncol = q)
   Yin <- Y
   naind <- (!is.na(Y)) + 0 # matrix(1,n,q)
   misind <- any(naind == 0) + 0
@@ -715,7 +715,7 @@ nbZeroSol <- function(Y, X0, c_index, ofset, naind) {
 #' # ofset = offset, control = control_nbfar, nfold = 5, PATH = F)
 #' }
 nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
-                  ofset = c('CSS','TSS','MRS','CLR')[1], control = list(), nfold = 5,
+                  ofset = NULL, control = list(), nfold = 5,
                   PATH = FALSE, nthread = 1, trace = FALSE) {
   cat("Initializing...", "\n")
   n <- nrow(Yt)
@@ -743,8 +743,8 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
   lamSel <- rep(0, maxrank)
 
 
-  # ofset <- offset_sacling(Y, ofset)
-  if (is.null(ofset)) ofset <- matrix(0, nrow = n, ncol = q)
+  ofset <- offset_sacling(Y, ofset)
+  # if (is.null(ofset)) ofset <- matrix(0, nrow = n, ncol = q)
   # naind <- (!is.na(Y)) + 0
   # aft <- nbZeroSol(Y, X0, c_index = cIndex, ofset, naind)
   # Z <- aft$Z
