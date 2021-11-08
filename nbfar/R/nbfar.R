@@ -346,8 +346,8 @@ nbrrr <- function(Yt, X, maxrank = 10,
   }
 
   ## Initialization
-  ofset <- offset_sacling(Y, ofset)
-  # if (is.null(ofset)) ofset <- matrix(0, nrow = n, ncol = q)
+  # ofset <- offset_sacling(Y, ofset)
+  if (is.null(ofset)) ofset <- matrix(0, nrow = n, ncol = q)
   Yin <- Y
   naind <- (!is.na(Y)) + 0 # matrix(1,n,q)
   misind <- any(naind == 0) + 0
@@ -743,8 +743,8 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
   lamSel <- rep(0, maxrank)
 
 
-  ofset <- offset_sacling(Y, ofset)
-  # if (is.null(ofset)) ofset <- matrix(0, nrow = n, ncol = q)
+  # ofset <- offset_sacling(Y, ofset)
+  if (is.null(ofset)) ofset <- matrix(0, nrow = n, ncol = q)
   # naind <- (!is.na(Y)) + 0
   # aft <- nbZeroSol(Y, X0, c_index = cIndex, ofset, naind)
   # Z <- aft$Z
