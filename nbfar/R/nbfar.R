@@ -66,6 +66,31 @@ nbCol <- function(Y, X0, ofset, naind) {
 
 
 
+#' @param Y outcome matrix
+#' @param ofset offset matrix or microbiome data analysis specific scaling: common sum scaling = CSS (default), total sum scaling = TSS, median-ratio scaling = MRS, centered-log-ratio scaling  = CLR
+offset_sacling = function(Y, ofset){
+  n <- nrow(Y)
+  q <- ncol(Y)
+  if (is.matrix(ofset)){
+    return(ofset)
+  } else if (tolower(ofset) == 'css'){
+    ofset <- matrix(0, nrow = n, ncol = q)
+    return(ofset)
+  } else if (tolower(ofset) == 'tss'){
+    ofset <- matrix(log(rowSums(Y,na.rm = T)),n,q)
+    return(ofset)
+  } else if (tolower(ofset) == 'mrs'){
+    tem <- exp(rowSums(log(Y + (Y == 0)), na.rm = T)/q)
+    ofset <- matrix(log(apply(Y/tem,1,median, na.rm=T)),n,q)
+    return(ofset)
+  } else if (tolower(ofset) == 'clr'){
+    ofset <- matrix(rowSums(log(Y + (Y == 0)), na.rm = T)/q,n,q)
+    return(ofset)
+  }
+}
+
+
+
 
 #' Simulate data for negative binomial factor regression
 #'
@@ -216,7 +241,7 @@ nbfar_sim <- function(U, D, V, n, Xsigma, C0,disp,depth) {
 #' @param X covariate matrix; when X = NULL, the fucntion performs unsupervised learning
 #' @param maxrank an integer specifying the desired rank/number of factors
 #' @param cIndex control index, specifying index of control variable in the design matrix X
-#' @param ofset offset matrix specified
+#' @param ofset offset matrix or microbiome data analysis specific scaling: common sum scaling = CSS (default), total sum scaling = TSS, median-ratio scaling = MRS, centered-log-ratio scaling  = CLR
 #' @param control a list of internal parameters controlling the model fitting
 #' @param nfold number of fold for cross-validation
 #' @param trace checking progress of cross validation error
@@ -297,7 +322,7 @@ nbfar_sim <- function(U, D, V, n, Xsigma, C0,disp,depth) {
 #' #                       control = control_nbrr, nfold = 5)
 #' }
 nbrrr <- function(Yt, X, maxrank = 10,
-                  cIndex = NULL, ofset = NULL,
+                  cIndex = NULL, ofset = c('CSS','TSS','MRS','CLR')[1],
                   control = list(), nfold = 5, trace = FALSE) {
   cat("Initializing...", "\n")
   n <- nrow(Yt)
@@ -317,7 +342,8 @@ nbrrr <- function(Yt, X, maxrank = 10,
   }
 
   ## Initialization
-  if (is.null(ofset)) ofset <- matrix(0, nrow = n, ncol = q)
+  ofset <- offset_sacling(Y, ofset)
+  # if (is.null(ofset)) ofset <- matrix(0, nrow = n, ncol = q)
   Yin <- Y
   naind <- (!is.na(Y)) + 0 # matrix(1,n,q)
   misind <- any(naind == 0) + 0
@@ -331,6 +357,8 @@ nbrrr <- function(Yt, X, maxrank = 10,
                               misind, naind)
   Z0 <- init_model$Z
   PHI0 <- init_model$PHI
+  ETA0 <- ofset + X0[, cIndex] %*% Z0
+  MU0 <- exp(ETA0)
   # C0 <- init_model$C
   # XC <- X0[, -cIndex] %*% init_model$C; svdxc <- svd(XC)
   # Vk <- svdxc$v[, 1:maxrank, drop = FALSE]
@@ -352,6 +380,7 @@ nbrrr <- function(Yt, X, maxrank = 10,
   dev <- matrix(NA, nfold, maxrank)
   sdcal <- matrix(NA, nfold, maxrank)
   tec <- rep(0, nfold)
+  dev0 <- rep(0, nfold)
 
   # rank selection via cross validation
   for (k in 1:maxrank) { # desired rank extraction
@@ -380,6 +409,7 @@ nbrrr <- function(Yt, X, maxrank = 10,
       # compute test sample error
       tem  <- nbrrr_likelihood(Yte, fitT[[ifold]]$mu, fitT[[ifold]]$eta,
                                fitT[[ifold]]$PHI, (!is.na(Yte)) + 0)
+      dev0[ifold]  <- nbrrr_likelihood(Yte, MU0, ETA0, PHI0, (!is.na(Yte)) + 0)[1]
 
 
       dev[ifold, k] = tem[1];
@@ -397,8 +427,8 @@ nbrrr <- function(Yt, X, maxrank = 10,
     fit.nfold[[k]] <- fitT
   }
   # select rank with lowest mean;
-  dev.mean <- colMeans(dev, na.rm = T)
-  rank_sel <- which.max(dev.mean)
+  dev.mean <- colMeans(cbind(dev0,dev), na.rm = T)
+  rank_sel <- which.max(dev.mean)-1
 
   # compute model estimate for the selected rank
   misind <- any(naind == 0) + 0
@@ -406,18 +436,32 @@ nbrrr <- function(Yt, X, maxrank = 10,
   control_nbrr$initepsilon <- 0.01*control_nbrr$initepsilon
   Y[is.na(Y)] <- 0
   # C0 <- Uk[, 1:rank_sel] %*% (Dk[1:rank_sel]*t(Vk[, 1:rank_sel]))
-  out <- nbrrr_cpp(Y, X0, rank_sel, cIndex, ofset, Z0,  PHI0, matrix(0,p,q),
-                   control_nbrr, misind, naind)
+  if (rank_sel > 0){
+    out <- nbrrr_cpp(Y, X0, rank_sel, cIndex, ofset, Z0,  PHI0, matrix(0,p,q),
+                     control_nbrr, misind, naind)
 
-  out$cv.err <- dev
-  XC <- X0[, -cIndex] %*% out$C[-cIndex, ]
-  out$Z <- matrix(out$C[cIndex, ], ncol = q)
-  svdxc <- svd(XC)
-  nkran <- sum(svdxc$d > 1e-07)
-  out$V <- svdxc$v[, 1:nkran, drop = FALSE]
-  out$D <- svdxc$d[1:nkran] / sqrt(n)
-  out$U <- out$C[-cIndex, ] %*% out$V %*%
-    diag(1 / out$D, nrow = nkran, ncol = nkran)
+    out$cv.err <- dev
+    XC <- X0[, -cIndex] %*% out$C[-cIndex, ]
+    out$Z <- matrix(out$C[cIndex, ], ncol = q)
+    svdxc <- svd(XC)
+    nkran <- sum(svdxc$d > 1e-07)
+    out$V <- svdxc$v[, 1:nkran, drop = FALSE]
+    out$D <- svdxc$d[1:nkran] / sqrt(n)
+    out$U <- out$C[-cIndex, ] %*% out$V %*%
+      diag(1 / out$D, nrow = nkran, ncol = nkran)
+    out$Y <- Yt;  out$X = X
+  } else {
+    C <- matrix(rep(0,ncol(X0)*q), ncol(X0),q)
+    C[cIndex,] <- Z0
+    out = list(C = C, PHI = PHI0, sc = NA, sb =NA, mu = MU0,
+               objval = NA, diffobj =NA, converged = NA, ExecTimekpath = NA,
+               maxit = NA, converge = NA, Z = Z0, D = 0,
+               U = matrix(rep(0,ncol(X0) -length(cIndex))),
+               V = matrix(rep(0,q)), Y = Yt, X =X)
+  }
+
+
+
   return(out)
 }
 
@@ -583,7 +627,7 @@ nbZeroSol <- function(Y, X0, c_index, ofset, naind) {
 #' @param maxrank an integer specifying the desired rank/number of factors
 #' @param nlambda number of lambda values to be used along each path
 #' @param cIndex control index, specifying index of control variable in the design matrix X
-#' @param ofset offset matrix specified
+#' @param ofset offset matrix or microbiome data analysis specific scaling: common sum scaling = CSS (default), total sum scaling = TSS, median-ratio scaling = MRS, centered-log-ratio scaling  = CLR
 #' @param control a list of internal parameters controlling the model fitting
 #' @param nfold number of folds in k-fold crossvalidation
 #' @param PATH TRUE/FALSE for generating solution path of sequential estimate after cross-validation step
@@ -667,7 +711,7 @@ nbZeroSol <- function(Y, X0, c_index, ofset, naind) {
 #' # ofset = offset, control = control_nbfar, nfold = 5, PATH = F)
 #' }
 nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
-                  ofset = NULL, control = list(), nfold = 5,
+                  ofset = c('CSS','TSS','MRS','CLR')[1], control = list(), nfold = 5,
                   PATH = FALSE, nthread = 1, trace = FALSE) {
   cat("Initializing...", "\n")
   n <- nrow(Yt)
@@ -695,7 +739,8 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
   lamSel <- rep(0, maxrank)
 
 
-  if (is.null(ofset)) ofset <- matrix(0, nrow = n, ncol = q)
+  ofset <- offset_sacling(Y, ofset)
+  # if (is.null(ofset)) ofset <- matrix(0, nrow = n, ncol = q)
   # naind <- (!is.na(Y)) + 0
   # aft <- nbZeroSol(Y, X0, c_index = cIndex, ofset, naind)
   # Z <- aft$Z
@@ -868,7 +913,7 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
   }
   ft1 <- list(fit = fit.nlayer, C = U %*% (D * t(V)), Z = Z, Phi = PHI,
               U = U, V = V, D = D,
-              lam = lamSel)
+              lam = lamSel, Y = Yt, X = X)
   return(ft1)
 }
 
