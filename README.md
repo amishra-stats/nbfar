@@ -14,15 +14,17 @@ The underlying structure of the models are illustrated in the Figure below.
 
 <img src="https://i.imgur.com/ytq5qZK.jpg" alt="nbfar" height="600" align="left"/>
 
-# Getting started  
+Getting started  
+--------------
 
-The **nbfar** package is currently available on GitHub and can be installed as follows
+
+The **nbfar** package is currently available on GitHub and can be installed as follows.
+The package **Rcpp** is required for installation.
 
 ```
-# Install packages 
+# Install packages
 # install.packages("Rcpp", repos="https://rcppcore.github.io/drat")
 # devtools::install_github('amishra-stats/nbfar/nbfar', force = TRUE)
-
 ```
 
 To use the library, we also rely on parallel computation. 
@@ -31,12 +33,11 @@ To use the library, we also rely on parallel computation.
 # load library
 library(nbfar)
 library(RcppParallel)
-
 ```
 
 
-
-# Simulation examples 
+Simulation examples 
+--------------
 
 We showcase the usage of **nbfar** and  **nbrrr** on simulated data. 
 
