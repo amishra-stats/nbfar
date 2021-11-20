@@ -23,8 +23,8 @@ The package **Rcpp** is required for installation.
 
 ```
 # Install packages
-# install.packages("Rcpp", repos="https://rcppcore.github.io/drat")
-# devtools::install_github('amishra-stats/nbfar/nbfar', force = TRUE)
+install.packages("Rcpp", repos="https://rcppcore.github.io/drat")
+devtools::install_github('amishra-stats/nbfar/nbfar', force = TRUE)
 ```
 
 To use the library, we also rely on parallel computation. 
