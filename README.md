@@ -19,8 +19,6 @@ The underlying structure of the models are illustrated in the Figure below.
 The **nbfar** package is currently available on GitHub and can be installed as follows
 
 ```
-rm(list = ls())
-
 # Install packages 
 # install.packages("Rcpp", repos="https://rcppcore.github.io/drat")
 # devtools::install_github('amishra-stats/nbfar/nbfar', force = TRUE)
@@ -38,9 +36,9 @@ library(RcppParallel)
 
 
 
-# Simulated examples 
+# Simulation examples 
 
-We showcase the usage of **nbfar** and  **nbrrr** on  simulated data. 
+We showcase the usage of **nbfar** and  **nbrrr** on simulated data. 
 
 
 ### Data simulation
@@ -131,7 +129,7 @@ Ym <- matrix(y, n, q)   # 20% of entries are missing at random
 
 ```
 
-###  Negative binomial reduced rank regression: **nbrrr** 
+###  Negative Binomial reduced rank regression: **nbrrr** 
 
 
 ```
@@ -151,7 +149,7 @@ nbrrr_testm <- nbrrr(Ym, X, maxrank = 5, control = control_r3, nfold = 5,trace =
 
 
 ```
-###  Negative co-sparse factor  regression: **nbfar** 
+###  Negative Binomial co-sparse factor regression: **nbfar** 
 
 ```
 # Model fit: (full data)
