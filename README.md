@@ -1,4 +1,4 @@
-# Negative binomial factor regression models with application to microbiome data analysis
+# Negative binomial factor regression models (with application to microbiome data analysis)
 
 The R package **nbfar** implements Negative Binomial factor regression models that allow the estimation of 
 structured parsimonious associations between a feature matrix X and overdispersed count data Y. 
