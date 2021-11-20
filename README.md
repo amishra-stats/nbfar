@@ -12,7 +12,7 @@ Currently, two models are available
 
 The underlying structure of the models are illustrated in the Figure below.
 
-<img src="https://i.imgur.com/ytq5qZK.jpg" alt="nbfar" height="500" align="left"/>
+<img src="https://i.imgur.com/ytq5qZK.jpg" alt="nbfar" height="80%" align="center"/>
 
 Getting started  
 --------------
