@@ -2,8 +2,9 @@
 
 The human microbiome provides essential physiological functions and helps maintain host homeostasis via the 
 formation of intricate ecological host-microbiome relationships. The R package **nbfar** implements 
-factor regression models that allow the estimation of structured parsimonious associations between host-related features and amplicon-derived
-microbial taxa. To account for the overdispersed nature of the amplicon sequencing count data, we propose
+factor regression models that allow the estimation of structured parsimonious associations between 
+host-related features X and amplicon-derived microbial taxa Y. 
+To account for the overdispersed nature of the amplicon sequencing count data, we propose
 **Negative Binomial reduced rank regression (NB-RRR)** and **Negative Binomial co-sparse factor regression (NB-FAR)**.
 
 Both of these models encode the underlying dependency among the microbial abundance data as outcomes and 
