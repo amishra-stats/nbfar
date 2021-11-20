@@ -1,18 +1,35 @@
 # Negative binomial factor regression models with application to microbiome data analysis
 
 The R package **nbfar** implements Negative Binomial factor regression models that allow the estimation of 
-structured parsimonious associations between a feature matrix X and overdispersed count data Y.
+structured parsimonious associations between a feature matrix X and overdispersed count data Y. 
+The package has been developed with microbiome count data Y in mind and can be used, e.g., to associate 
+host or environmental covariates with microbial abundances.
 
 Currently, two models are available
 
 - **Negative Binomial reduced rank regression (NB-RRR)**
 - **Negative Binomial co-sparse factor regression (NB-FAR)**.
 
-The underlying structural assumptions of the models are illustrated in the Figure below
+The underlying structure of the models are illustrated in the Figure below.
 
 <img src="https://i.imgur.com/ytq5qZK.jpg" alt="nbfar" height="600" align="left"/>
 
+# Getting started  
 
+The **nbfar** package is currently available on GitHub and can be installed as follows
+
+```
+rm(list = ls())
+
+
+# Install packages 
+# install.packages("Rcpp", repos="https://rcppcore.github.io/drat")
+# devtools::install_github('amishra-stats/nbfar/nbfar', force = TRUE)
+# load library
+library(nbfar)
+library(RcppParallel)
+
+```
 
 
 # Simulated examples 
