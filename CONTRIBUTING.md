@@ -1,4 +1,4 @@
-# Contributing to `latentcor`
+# Contributing to `nbfar`
 
 Contributions to `nbfar` follow the same principles as stated in the guideline for contributors to the `tidyverse` ecosystem of R (see here for more details: [**development contributing guide**](https://rstd.io/tidy-contrib) ).
 
