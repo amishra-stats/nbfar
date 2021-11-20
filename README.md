@@ -15,7 +15,7 @@ procedure for parameter estimation. Here are the details of the R subroutines:
 - **nbfar** : Estimate the parameters of the negative binomial factor regression model
 - **nbrrr** : Estimate the parameters of the negative reduced rank regression model 
 
-<img src="https://imgur.com/ytq5qZK" alt="nbfar" height="150" align="right"/>
+<img src="https://i.imgur.com/ytq5qZK.jpg" alt="nbfar" height="400" align="left"/>
 
 # Simulated examples 
 
