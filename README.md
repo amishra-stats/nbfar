@@ -18,8 +18,7 @@ procedure for parameter estimation. Here are the details of the R subroutines:
 
 
 
-
-# Simulated sxamples 
+# Simulated examples 
 
 We showcase the usage of **nbfar** and  **nbrrr** on  simulated data. 
 
