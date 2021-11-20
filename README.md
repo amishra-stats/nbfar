@@ -21,7 +21,6 @@ The **nbfar** package is currently available on GitHub and can be installed as f
 ```
 rm(list = ls())
 
-
 # Install packages 
 # install.packages("Rcpp", repos="https://rcppcore.github.io/drat")
 # devtools::install_github('amishra-stats/nbfar/nbfar', force = TRUE)
