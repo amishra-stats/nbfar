@@ -1,22 +1,18 @@
 # Negative binomial factor regression models with application to microbiome data analysis
 
-The human microbiome provides essential physiological functions and helps maintain host homeostasis via the 
-formation of intricate ecological host-microbiome relationships. The R package **nbfar** implements 
-factor regression models that allow the estimation of structured parsimonious associations between 
-host-related features X and amplicon-derived microbial taxa Y. 
-To account for the overdispersed nature of the amplicon sequencing count data, we propose
-**Negative Binomial reduced rank regression (NB-RRR)** and **Negative Binomial co-sparse factor regression (NB-FAR)**.
+The R package **nbfar** implements Negative Binomial factor regression models that allow the estimation of 
+structured parsimonious associations between a feature matrix X and overdispersed count data Y.
 
-Both of these models encode the underlying dependency among the microbial abundance data as outcomes and 
-the host-associated features as predictors through a structured coefficient matrix. 
-NB-RRR does so via a rank constrained coefficient matrix whereas NB-FAR does so via a sparse singular value decomposition (SSVD) 
-of the coefficient matrix. The R package **nbfar** provides an efficient implementation of the proposed 
-procedure for parameter estimation. Here are the details of the R subroutines:
+Currently, two models are available
 
-- **nbfar** : Estimate the parameters of the negative binomial factor regression model
-- **nbrrr** : Estimate the parameters of the negative reduced rank regression model 
+- **Negative Binomial reduced rank regression (NB-RRR)**
+- **Negative Binomial co-sparse factor regression (NB-FAR)**.
+
+The underlying structural assumptions of the models are illustrated in the Figure below
 
 <img src="https://i.imgur.com/ytq5qZK.jpg" alt="nbfar" height="600" align="left"/>
+
+
 
 
 # Simulated examples 
