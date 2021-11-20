@@ -25,11 +25,18 @@ rm(list = ls())
 # Install packages 
 # install.packages("Rcpp", repos="https://rcppcore.github.io/drat")
 # devtools::install_github('amishra-stats/nbfar/nbfar', force = TRUE)
+
+```
+
+To use the library, we also rely on parallel computation. 
+
+```
 # load library
 library(nbfar)
 library(RcppParallel)
 
 ```
+
 
 
 # Simulated examples 
@@ -39,20 +46,6 @@ We showcase the usage of **nbfar** and  **nbrrr** on  simulated data.
 
 ### Data simulation
 
-```
-rm(list = ls())
-
-
-# Install packages 
-# install.packages("Rcpp", repos="https://rcppcore.github.io/drat")
-# devtools::install_github('amishra-stats/nbfar/nbfar', force = TRUE)
-# load library
-library(nbfar)
-library(RcppParallel)
-
-```
-
-Check check
 
 ```
 ## ## -----------------------Simulation settings --------------------
