@@ -1,6 +1,19 @@
-# Negative binomial factor regression model with application to microbiome data analysis
+# Negative binomial factor regression models with application to microbiome data analysis
 
-Microbiomes have developed a symbiotic relationship with their hosts over thousands of years of evolution. Host-associated factors like health, dietary intake and demography influence the microbial community dynamics. The underlying association between the two entities needs to be characterized.  Recent advances in sequencing technology have enabled us to detect microorganisms in the microbiome and collect their abundance data. The abundance data of a species are overdispersed and of count type. 
+The human microbiome provides essential physiological functions and helps maintain host homeostasis via the 
+formation of intricate ecological host-microbiome relationships. While it is well established that the lifestyle
+of the host, dietary preferences, demographic background, and  health status can influence microbial community
+composition and dynamics, robust generalizable associations between specific host-associated factors
+and specific microbial taxa have remained largely elusive. Here, we propose factor regression models that
+allow the estimation of structured parsimonious associations between host-related features and amplicon-derived
+microbial taxa. To account for the overdispersed nature of the amplicon sequencing count data, we propose
+Negative Binomial reduced rank regression (NB-RRR) and Negative Binomial co-sparse factor regression (NB-FAR).
+While NB-RRR encodes the underlying dependency among the microbial abundances as outcomes and the
+host-associated features as predictors through a rank-constrained coefficient matrix, NB-FAR uses a sparse
+singular value decomposition of the coefficient matrix. The latter approach avoids the notoriously difficult 
+joint parameter estimation by extracting sparse unit-rank components of the coefficient  matrix sequentially. To
+solve the non-convex optimization problems associated with these factor regression models, we present a novel
+iterative block-wise majorization procedure.
 
 To model their association with host-related features, we propose a **negative binomial reduced rank regression (NB-RRR)** and a **negative binomial co-sparse factor regression (NB-FAR)**. Both of these models encode the underlying dependency among the microbial abundance data as outcomes and the host-associated features as predictors through a structured coefficient matrix. NB-RRR does so via a rank constrained coefficient matrix whereas NB-FAR does so via a sparse singular value decomposition (SSVD) of the coefficient matrix. The R package **nbfar** provides an efficient implementation of the proposed  procedure for parameter estimation. Here are the details of the R subroutines:
 
