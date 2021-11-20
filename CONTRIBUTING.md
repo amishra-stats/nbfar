@@ -18,7 +18,7 @@ If you have found a bug, please file an issue that illustrates the bug with a mi
 
 ### Pull request process
 
-To contribute a change to `latentcor`, you follow these steps:
+To contribute a change to `nbfar`, you follow these steps:
 
 1. Create a branch in git, give it a descriptive name, and make your changes.
 2. Push branch to GitHub and issue a pull request (PR).
@@ -33,7 +33,7 @@ Pull requests will be evaluated against a checklist:
 1.  __Motivation__. Your pull request should clearly and concisely motivate the need for change. Please describe the problem your PR addresses and show how your pull request solves it as concisely as possible.
 
 Also, include this motivation in `NEWS` so that when a new release of
-`latentcor` comes out it's easy for users to see what has changed. Add your
+`nbfar` comes out it's easy for users to see what has changed. Add your
 item at the top of the file and use markdown for formatting. The
 news item should end with `(@yourGithubUsername, #the_issue_number)`.
 
@@ -44,7 +44,7 @@ make sure to create multiple branches. If you have multiple changes that depend
 on each other, start with the first one and don't submit any others until the
 first one has been processed.
 
-3. __Use `nbfar` coding style__. We tried to adhere as closely as possible to the [official `tidyverse` style guide](http://style.tidyverse.org) -- please do so as well. Maintaining a consistent style across the whole code base makes it much easier to jump into the code. If you're modifying existing `latentcor` code that doesn't follow the style guide, a separate pull request to fix the style would be greatly appreciated.
+3. __Use `nbfar` coding style__. We tried to adhere as closely as possible to the [official `tidyverse` style guide](http://style.tidyverse.org) -- please do so as well. Maintaining a consistent style across the whole code base makes it much easier to jump into the code. If you're modifying existing `nbfar` code that doesn't follow the style guide, a separate pull request to fix the style would be greatly appreciated.
 
 4. If you're adding new parameters or a new function, you'll also need to document them with [`roxygen2`](https://github.com/klutometis/roxygen). Make sure to re-run `devtools::document()` on the code before submitting.
 
