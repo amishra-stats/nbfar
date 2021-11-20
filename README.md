@@ -37,10 +37,11 @@ rm(list = ls())
 library(nbfar)
 library(RcppParallel)
 
+```
 
+Check check
 
-
-
+```
 ## ## -----------------------Simulation settings --------------------
 ## Simulation setting:
 ## n: sample size
@@ -68,6 +69,7 @@ nlam <- 40                # number of tuning parameter
 s  = 0.5; q <- 30
 sp  = xp/p
 nthread = 1
+
 
 
 ## -------------- Generate low-rank and sparse coefficient matrix ---
