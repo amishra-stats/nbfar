@@ -182,11 +182,24 @@ nbfar_testm <- nbfar(Ym, X, maxrank = rank.est, nlambda = nlam,
 ```
 
 
+Community Guidelines
+--------------------
 
+1.  Contributions and suggestions to the software are always welcome.
+    Please consult our [contribution guidelines](https://github.com/mingzehuang/latentcor/blob/master/CONTRIBUTING.md) prior
+    to submitting a pull request.
+2.  Report issues or problems with the software using github’s [issue
+    tracker](https://github.com/amishra-stats/nbfar/issues).
+3.  Contributors must adhere to the [Code of Conduct](https://github.com/amishra-stats/latentcor/blob/master/CODE_OF_CONDUCT.md).
+
+Acknowledgments
+--------------
+
+We thank Dr. Andreas Buja for useful comments on the project.
 
 ## Queries
-Please contact authors and creators for any queries related to using the analysis 
 
+You can also contact us via email
 
 -   Aditya Mishra: [mailto](mailto:amishra@flatironinstitute.org)
 -   Christian Mueller: [mailto](mailto:cmueller@flatironinstitute.org)
