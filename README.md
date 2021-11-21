@@ -28,7 +28,7 @@ The manually curated data file is available (here)[].
 
 Some of our findings are summarized in the Figure below.
 
-<img src="https://i.imgur.com/XK37aHm.jpg" alt="nbfar" height="10%" align="center"/>
+<img src="https://i.imgur.com/XK37aHm.jpg" alt="nbfar" height="100%"/>
 
 
 
