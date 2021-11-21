@@ -20,15 +20,15 @@ Both models result in a type of joint biclustering structure linking features to
 Microbiome data example - linking host phenotype data to microbial abundances of the American Gut project
 --------------
 
-Using `nbfar` we analyzed the (American Gut Project data)[https://journals.asm.org/doi/10.1128/mSystems.00031-18] 
-and (Vioscreen)[https://www.vioscreen.com/Home] information to identify robust links between diet and life style 
+Using `nbfar` we analyzed the [American Gut Project data](https://journals.asm.org/doi/10.1128/mSystems.00031-18) 
+and [Vioscreen](https://www.vioscreen.com/Home) information to identify robust links between diet and life style 
 features and broad abundance patterns of microbial families. 
 
 The manually curated data file is available (here)[]. 
 
 Some of our findings are summarized in the Figure below.
 
-<img src="https://i.imgur.com/XK37aHm.jpg" alt="nbfar" height="80%" align="center"/>
+<img src="https://i.imgur.com/XK37aHm.jpg" alt="nbfar" height="40%" align="center"/>
 
 
 
