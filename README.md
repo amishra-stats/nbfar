@@ -1,7 +1,8 @@
-# Negative binomial factor regression models (with application to microbiome data analysis)
+# Negative binomial factor regression models with application to microbiome data analysis
 
-The R package **nbfar** implements Negative Binomial factor regression models that allow the estimation of 
-structured parsimonious associations between a feature matrix X and overdispersed count data Y. 
+The R package `nbfar` implements Negative Binomial factor regression models that allow the estimation of 
+structured (sparse) associations between a feature matrix X and overdispersed count data Y. 
+
 The package has been developed with microbiome count data Y in mind and can be used, e.g., to associate 
 host or environmental covariates with microbial abundances.
 
@@ -12,14 +13,30 @@ Currently, two models are available
 
 The underlying structure of the models are illustrated in the Figure below.
 
-<img src="https://i.imgur.com/ytq5qZK.jpg" alt="nbfar" height="60%" align="center"/>
+<img src="https://i.imgur.com/ytq5qZK.jpg" alt="nbfar" height="80%" align="center"/>
+
+Both models result in a type of joint biclustering structure linking features to count responses.
+
+Microbiome data example - linking host phenotype data to microbial abundances of the American Gut project
+--------------
+
+Using `nbfar` we analyzed the (American Gut Project data)[https://journals.asm.org/doi/10.1128/mSystems.00031-18] 
+and (Vioscreen)[https://www.vioscreen.com/Home] information to identify robust links between diet and life style 
+features and broad abundance patterns of microbial families. 
+
+The manually curated data file is available (here)[]. 
+
+Some of our findings are summarized in the Figure below.
+
+<img src="https://i.imgur.com/XK37aHm.jpg" alt="nbfar" height="80%" align="center"/>
+
+
 
 Getting started  
 --------------
 
-
-The **nbfar** package is currently available on GitHub and can be installed as follows.
-The package **Rcpp** is required for installation.
+The `nbfar` package is currently available on GitHub and can be installed as follows.
+The package `Rcpp` is required for installation.
 
 ```
 # Install packages
@@ -202,4 +219,3 @@ You can also contact us via email
 
 - [Aditya Mishra](mailto:amishra@flatironinstitute.org)
 - [Christian L. Mueller](mailto:cmueller@flatironinstitute.org)
-
