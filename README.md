@@ -26,8 +26,8 @@ features and broad abundance patterns of microbial families.
 
 The manually curated data file as 'phyloseq' object is available [here](). 
 
-Some of our findings are summarized in the Figure below where we bicluster microbial families and host-associated features,
-as found by `nbfar`.
+Some of our findings are summarized in the Figure below where we show microbial families and host-associated feature 
+biclusters automatically identified by `nbfar`.
 
 <img src="https://i.imgur.com/XK37aHm.jpg" alt="nbfar" width=100%/>
 
