@@ -2,7 +2,7 @@
 % Please edit documentation in R/nbfar.R
 \name{nbrrr}
 \alias{nbrrr}
-\title{Negative binomial reduced rank regression}
+\title{Negative binomial reduced rank regression (NBRRR)}
 \usage{
 nbrrr(
   Yt,
@@ -18,37 +18,37 @@ nbrrr(
 \arguments{
 \item{Yt}{response matrix}
 
-\item{X}{covariate matrix; when X = NULL, the fucntion performs unsupervised learning}
+\item{X}{design matrix; when X = NULL, we set X as identity matrix and perform generalized PCA.}
 
-\item{maxrank}{an integer specifying the desired rank/number of factors}
+\item{maxrank}{an integer specifying the maximum possible rank of the coefficient matrix or the number of factors}
 
-\item{cIndex}{control index, specifying index of control variable in the design matrix X}
+\item{cIndex}{specify index of control variable in the design matrix X}
 
-\item{ofset}{offset matrix specified}
+\item{ofset}{offset matrix or microbiome data analysis specific scaling: common sum scaling = CSS (default), total sum scaling = TSS, median-ratio scaling = MRS, centered-log-ratio scaling  = CLR}
 
 \item{control}{a list of internal parameters controlling the model fitting}
 
-\item{nfold}{number of fold for cross-validation}
+\item{nfold}{number of folds in k-fold crossvalidation}
 
-\item{trace}{checking progress of cross validation error}
+\item{trace}{TRUE/FALSE checking progress of cross validation error}
 }
 \value{
-\item{C}{estimated coefficient matrix; based on GIC}
-  \item{Z}{estimated control variable coefficient matrix}
-  \item{PHI}{estimted dispersion parameters}
-  \item{U}{estimated U matrix (generalize latent factor weights)}
-  \item{D}{estimated singular values}
-  \item{V}{estimated V matrix (factor loadings)}
+\item{C}{estimated coefficient matrix}
+\item{Z}{estimated control variable coefficient matrix}
+\item{PHI}{estimted dispersion parameters}
+\item{U}{estimated U matrix (generalize latent factor weights)}
+\item{D}{estimated singular values}
+\item{V}{estimated V matrix (factor loadings)}
 }
 \description{
-Compute 1 to marxrank coefficient matrix in the NBRRR model and perform cross validation to select a coefficient matrix of rank r
+In the range of 1 to maxrank, the estimation procedure selects the rank r of the coefficient matrix using a cross-validation approach. For the selected rank, a rank r coefficient matrix is estimated that best fits the observations.
 }
 \examples{
 \donttest{
 ## Model specification:
 SD <- 123
 set.seed(SD)
-p <- 100; n <- 200
+p <- 50; n <- 200
 pz <- 0
 nrank <- 3                # true rank
 rank.est <- 5             # estimated rank

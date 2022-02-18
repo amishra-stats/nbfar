@@ -1,20 +1,20 @@
-
-#' Default control parameters for negative binomial factor regression
-#'
 #' Control parameters for NBFAR and NBRRR
 #'
-#' @param lamMaxFac a multiplier of calculated lambda_max
-#' @param lamMinFac a multiplier of determing lambda_min as a fraction of lambda_max
-#' @param gamma0 power parameter in the adaptive weights
+#' Default value for a list of control parameters that are used to estimate the parameters of negative binomial co-sparse factor regression (NBFAR) and negative binomial reduced rank regression (NBRRR).
+#'
+#'
+#' @param lamMaxFac a multiplier of the computed maximum value (lambda_max) of the tuning parameter
+#' @param lamMinFac a multiplier to determine lambda_min as a fraction of lambda_max
+#' @param gamma0 power parameter for generating the adaptive weights
 #' @param elnetAlpha elastic net penalty parameter
 #' @param spU maximum proportion of nonzero elements in each column of U
 #' @param spV maximum proportion of nonzero elements in each column of V
 #' @param maxit maximum iteration for each sequential steps
-#' @param epsilon tolerence value set for convergene of gcure
-#' @param objI 1 or 0 convergence on the basis of objective function or not
-#' @param initmaxit maximum iteration for initialization problem
-#' @param initepsilon tolerence value for convergene in the initialization problem
-#' @return a list of controling parameter.
+#' @param epsilon tolerance value required for convergence of inner loop in GCURE
+#' @param objI 1 or 0  to indicate that the convergence will be on the basis of objective function or not
+#' @param initmaxit maximum iteration for minimizing the objective function while computing the initial estimates of the model parameter
+#' @param initepsilon tolerance value required for the convergence of the objective function while computing the initial estimates of the model parameter
+#' @return a list of controlling parameter.
 #' @export
 #' @examples
 #' control <- nbfar_control()
@@ -36,78 +36,24 @@ nbfar_control <- function(maxit = 5000, epsilon = 1e-7,
   )
 }
 
-# Fit glm.nb Columnwise on the control variable
-#
-# @param Y Multivariate response matrix
-# @param X0 design matrix
-# @param ofset offset  matrix
-# @param naind indicator vector for missing data in Y
-#' @useDynLib nbfar
-#' @import magrittr
-#' @importFrom MASS glm.nb
-#' @importFrom stats glm.control rnorm offset coef
-nbCol <- function(Y, X0, ofset, naind) {
-  q  <- ncol(Y)
-  PHI <- rep(0, q)
-  Cini <- matrix(0, nrow = ncol(X0), ncol = q)
-  for (i in 1:q) {
-    print(i)
-    qqq <- naind[,i] == 1
-    ft <- MASS::glm.nb(Y[qqq, i]~X0[qqq, ] + offset(ofset[qqq, i]) -1,
-                       control = stats::glm.control(maxit = 10000, epsilon = 1e-5),
-                       init.theta = MASS::glm.nb(Y[qqq, i]~1+
-                                                   offset(ofset[qqq,i]))$theta)
-    tem = coef(ft); tem[is.na(tem)] <- 0
-    Cini[, i] <- ft$coefficients
-    PHI[i] <- ft$theta
-  }
-  return(list(C = Cini, PHI = PHI))
-}
-
-
-
-#' @param Y outcome matrix
-#' @param ofset offset matrix or microbiome data analysis specific scaling: common sum scaling = CSS (default), total sum scaling = TSS, median-ratio scaling = MRS, centered-log-ratio scaling  = CLR
-#' @importFrom stats median
-offset_sacling = function(Y, ofset){
-  n <- nrow(Y)
-  q <- ncol(Y)
-  if (is.null(ofset)) {
-    ofset <- matrix(0, nrow = n, ncol = q)
-    return(ofset)
-  } else if (is.matrix(ofset)){
-    return(ofset)
-  } else if (tolower(ofset) == 'css'){
-    ofset <- matrix(0, nrow = n, ncol = q)
-    return(ofset)
-  } else if (tolower(ofset) == 'tss'){
-    ofset <- matrix(log(rowSums(Y,na.rm = T)),n,q)
-    return(ofset)
-  } else if (tolower(ofset) == 'mrs'){
-    tem <- exp(rowSums(log(Y + (Y == 0)), na.rm = T)/q)
-    ofset <- matrix(log(apply(Y/tem,1,median, na.rm=T)),n,q)
-    return(ofset)
-  } else if (tolower(ofset) == 'clr'){
-    ofset <- matrix(rowSums(log(Y + (Y == 0)), na.rm = T)/q,n,q)
-    return(ofset)
-  }
-}
 
 
 
 
-#' Simulate data for negative binomial factor regression
+
+
+#' Simulated data for testing NBFAR and NBRRR model
 #'
-#' Generate random samples from a negative binomial factor regression model
+#' Simulate response and covariates for multivariate negative binomial regression with a low-rank and sparse coefficient matrix. Coefficient matrix is expressed in terms of U (left singular vector), D (singular values) and V (right singular vector).
 #'
 #' @param U specified value of U
 #' @param V specified value of V
 #' @param D specified value of D
 #' @param n sample size
-#' @param Xsigma covariance matrix for generating sample of X
-#' @param C0 Specified coefficient matrix with first row being intercept
+#' @param Xsigma covariance matrix used to generate predictors in X
+#' @param C0 intercept value in the coefficient matrix
 #' @param disp dispersion parameter of the generative model
-#' @param depth sequencing depth of the microbiome data
+#' @param depth log of the sequencing depth of the microbiome data (used as an offset in the simulated multivariate negative binomial regression model)
 #' @return
 #'   \item{Y}{Generated response matrix}
 #'   \item{X}{Generated predictor matrix}
@@ -226,31 +172,22 @@ nbfar_sim <- function(U, D, V, n, Xsigma, C0,disp,depth) {
 }
 
 
-# Yt = Y; maxrank = 5; cIndex = NULL; ofset = NULL
-# control = nbfar_control();  nfold = 5
-# set.seed(1234)
-# nbrrr_test <- nbrrr(Yt, X, maxrank = 7, cIndex = NULL, ofset = NULL,
-#       control = gofar_control(initmaxit = 5000, initepsilon = 1e-3), nfold = 5)
-# plot(colMeans(nbrrr_test$cv.err))
-# plot(log(nbrrr_test$objval[nbrrr_test$objval>0]))
-# plot(log(nbrrr_test$diffobj[nbrrr_test$diffobj>0]))
 
 
-
-#' Negative binomial reduced rank regression
+#' Negative binomial reduced rank regression (NBRRR)
 #'
-#' Compute 1 to marxrank coefficient matrix in the NBRRR model and perform cross validation to select a coefficient matrix of rank r
+#' In the range of 1 to maxrank, the estimation procedure selects the rank r of the coefficient matrix using a cross-validation approach. For the selected rank, a rank r coefficient matrix is estimated that best fits the observations.
 #'
 #' @param Yt response matrix
-#' @param X covariate matrix; when X = NULL, the fucntion performs unsupervised learning
-#' @param maxrank an integer specifying the desired rank/number of factors
-#' @param cIndex control index, specifying index of control variable in the design matrix X
+#' @param X design matrix; when X = NULL, we set X as identity matrix and perform generalized PCA.
+#' @param maxrank an integer specifying the maximum possible rank of the coefficient matrix or the number of factors
+#' @param cIndex specify index of control variable in the design matrix X
 #' @param ofset offset matrix or microbiome data analysis specific scaling: common sum scaling = CSS (default), total sum scaling = TSS, median-ratio scaling = MRS, centered-log-ratio scaling  = CLR
 #' @param control a list of internal parameters controlling the model fitting
-#' @param nfold number of fold for cross-validation
-#' @param trace checking progress of cross validation error
+#' @param nfold number of folds in k-fold crossvalidation
+#' @param trace TRUE/FALSE checking progress of cross validation error
 #' @return
-#'   \item{C}{estimated coefficient matrix; based on GIC}
+#'   \item{C}{estimated coefficient matrix}
 #'   \item{Z}{estimated control variable coefficient matrix}
 #'   \item{PHI}{estimted dispersion parameters}
 #'   \item{U}{estimated U matrix (generalize latent factor weights)}
@@ -266,7 +203,7 @@ nbfar_sim <- function(U, D, V, n, Xsigma, C0,disp,depth) {
 #' ## Model specification:
 #' SD <- 123
 #' set.seed(SD)
-#' p <- 100; n <- 200
+#' p <- 50; n <- 200
 #' pz <- 0
 #' nrank <- 3                # true rank
 #' rank.est <- 5             # estimated rank
@@ -471,172 +408,23 @@ nbrrr <- function(Yt, X, maxrank = 10,
 
 
 
-#' @importFrom mpath cv.glmregNB
-nbColSp <- function(Y, X0, ofset, cindex,  naind) {
-  q  <- ncol(Y)
-  PHI <- rep(1, q)
-  Cini <- matrix(0, nrow = ncol(X0), ncol = q)
-  pf = rep(1, ncol(X0)); pf[cindex] <- 0
-  for (i in 1:q) {
-    if ((i %% 5) == 0 ) cat('Initialization upto column index: ',i,'\n')
-    tryCatch({
-      qqq <- naind[,i] == 1
-      dt = data.frame(y = Y[qqq, i], X = X0[qqq, -1])
-      ft <- mpath::glmregNB(y~., data = dt, maxit = 100, nlambda = 2,
-                            offset = ofset[qqq, i], thresh = 1e-2,
-                            penalty.factor  = pf[-1],maxit.theta = 10,
-                            # lambda = seq(0.001, 1, length.out = 5),
-                            # lambda.min.ratio = 0.0001,
-                            # init.theta = MASS::glm.nb(Y[qqq, i]~1)$theta,
-                            alpha = 0.5,
-                            rescale = FALSE, standardize = FALSE)
-      tem = coef(ft)[,2]; tem[is.na(tem)] <- 0
-      Cini[, i] <- tem
-      PHI[i] <- ft$theta[2]
-    }, error = function(error_message) {
-      return(NA)
-    })
-  }
-  return(list(Z = Cini[cindex,,drop = FALSE],
-              C = Cini[-cindex,,drop = FALSE],
-              PHI = PHI))
-}
-
-#' @importFrom mpath cv.glmregNB
-nbColSpx <- function(Y, X0, ofset, cindex,  naind) {
-  q  <- ncol(Y)
-  PHI <- rep(1, q)
-  Cini <- matrix(0, nrow = ncol(X0), ncol = q)
-  pf = rep(1, ncol(X0)); pf[cindex] <- 0
-  for (i in 1:q) {
-    if ((i %% 5) == 0 ) cat('Initialization upto column index: ',i,'\n')
-    tryCatch({
-      qqq <- naind[,i] == 1
-      dt = data.frame(y = Y[qqq, i], X = X0[qqq, -1])
-      ft <- mpath::cv.glmregNB(y~., data = dt, maxit = 100, nfolds = 4,
-                               offset = ofset[qqq, i], thresh = 1e-2,
-                               penalty.factor  = pf[-1],maxit.theta = 10,
-                               # nlambda = 5,
-                               lambda = seq(0.001, 1, length.out = 5),
-                               # init.theta = MASS::glm.nb(Y[qqq, i]~1)$theta,
-                               alpha = 0.95,
-                               rescale = FALSE, standardize = FALSE,
-                               plot.it = FALSE)
-      tem = coef(ft); tem[is.na(tem)] <- 0
-      Cini[, i] <- tem
-      PHI[i] <- ft$fit$theta[ft$lambda.which]
-    }, error = function(error_message) {
-      return(NA)
-    })
-  }
-  return(list(Z = Cini[cindex,,drop = FALSE],
-              C = Cini[-cindex,,drop = FALSE],
-              PHI = PHI))
-}
-
-#
-# Get lambda max for the negattive binomial disttribution
-#
-# @param Y Multivariate response matrix
-# @param X design matrix
-# @param offset offset  matrix
-#' @useDynLib nbfar
-#' @import magrittr
-#' @importFrom MASS glm.nb
-lmax_nb = function(Y, X,offset){
-  Y[is.na(Y)] <- 0
-  mu <- exp(offset)
-  ttt <- abs(crossprod(X,Y - mu)); maxtt <- max(ttt)
-  out <- 2*maxtt
-  out
-}
-
-# Get zero solution for the negative binomial regression
-#
-# @param Y Multivariate response matrix
-# @param X0 design matrix
-# @param c_index control index in the model
-# @param ofset offset  matrix
-# @param naind indicator vector for missing data in Y
-#' @useDynLib nbfar
-#' @import magrittr
-#' @importFrom MASS glm.nb
-#' @importFrom stats glm.control rnorm
-nbZeroSol <- function(Y, X0, c_index, ofset, naind) {
-  q  <- ncol(Y)
-  PHI <- rep(1, q)
-  Cini <- matrix(0, nrow = length(c_index), ncol = q)
-  for (i in 1:q) {
-    tryCatch({
-      qqq <- naind[,i] == 1
-      xx <- MASS::glm.nb(Y[qqq, i]~1)
-      ft <- MASS::glm.nb(Y[qqq, i]~X0[qqq, c_index,drop = FALSE] +
-                           offset(ofset[qqq, i]) -1,
-                         control = glm.control(maxit = 1000, epsilon = 1e-3,
-                                               trace = FALSE),
-                         init.theta = xx$theta)
-      Cini[, i] <- ft$coefficients
-      PHI[i] <- ft$theta
-    }, error = function(error_message) {
-      return(NA)
-    })
-  }
-  return(list(Z = Cini, PHI = PHI))
-}
-# nbZeroSol <- function(Y, X0, c_index, ofset, naind) {
-#   q  <- ncol(Y)
-#   PHI <- rep(0, q)
-#   Cini <- matrix(0, nrow = length(c_index), ncol = q)
-#   for (i in 1:q) {
-#     qqq <- naind[,i] == 1
-#     xx <- MASS::glm.nb(Y[qqq, i]~1,
-#                        control = glm.control(maxit = 10000, epsilon = 1e-3,
-#                                              trace = FALSE))
-#     ft <- MASS::glm.nb(Y[qqq, i]~X0[qqq, c_index,drop = FALSE] +
-#                          offset(ofset[qqq, i]) -1,
-#                        control = glm.control(maxit = 10000, epsilon = 1e-3,
-#                                              trace = FALSE),
-#                        init.theta = xx$theta)
-#     Cini[, i] <- ft$coefficients
-#     PHI[i] <- ft$theta
-#   }
-#   return(list(Z = Cini, PHI = PHI))
-# }
 
 
-
-
-
-
-
-# load('aditya.rda')
-# Yt = Y; X = X; maxrank = 5; cIndex = NULL; ofset = NULL
-# control = gofar_control();  nfold = 5; nlambda = 40;
-# PATH = FALSE
-
-# set.seed(1234)
-# nbrrr_test <- nbrrr(Yt, X, maxrank = 7, cIndex = NULL, ofset = NULL,
-#       control = gofar_control(initmaxit = 5000, initepsilon = 1e-3), nfold = 5)
-# plot(colMeans(nbrrr_test$cv.err))
-# plot(log(nbrrr_test$objval[nbrrr_test$objval>0]))
-# plot(log(nbrrr_test$diffobj[nbrrr_test$diffobj>0]))
-
-
-#' Negative binomial co-sparse factor regression
+#' Negative binomial co-sparse factor regression  (NBFAR)
 #'
-#' Model parameter estimation using sequential approach. The algorith automatically stops after extracting sufficient unit rank components.
+#' To estimate a low-rank and sparse coefficient matrix in large/high dimensional setting, the approach extracts unit-rank components of required matrix in sequential order. The algorithm automatically stops after extracting sufficient unit rank components.
 #'
 #' @param Yt response matrix
-#' @param X covariate matrix; when X = NULL, the fucntion performs unsupervised learning
-#' @param maxrank an integer specifying the desired rank/number of factors
+#' @param X design matrix; when X = NULL, we set X as identity matrix and perform generalized sparse PCA.
+#' @param maxrank an integer specifying the maximum possible rank of the coefficient matrix or the number of factors
 #' @param nlambda number of lambda values to be used along each path
-#' @param cIndex control index, specifying index of control variable in the design matrix X
+#' @param cIndex specify index of control variables in the design matrix X
 #' @param ofset offset matrix or microbiome data analysis specific scaling: common sum scaling = CSS (default), total sum scaling = TSS, median-ratio scaling = MRS, centered-log-ratio scaling  = CLR
 #' @param control a list of internal parameters controlling the model fitting
 #' @param nfold number of folds in k-fold crossvalidation
 #' @param PATH TRUE/FALSE for generating solution path of sequential estimate after cross-validation step
-#' @param nthread number of thread to be used for parallelization
-#' @param trace checking progress of cross validation error
+#' @param nthread number of thread to be used for parallelizing the crossvalidation procedure
+#' @param trace TRUE/FALSE checking progress of cross validation error
 #' @return
 #'   \item{C}{estimated coefficient matrix; based on GIC}
 #'   \item{Z}{estimated control variable coefficient matrix}
@@ -920,61 +708,4 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
               lam = lamSel, Y = Yt, X = X)
   return(ft1)
 }
-
-
-
-
-
-# ## store the deviance of the test data
-# dev <- matrix(NA, nfold, nlambda)
-# sdcal <- matrix(NA, nfold, nlambda)
-# tec <- rep(0, nfold)
-# ID <- rep(1:nfold, len = N.nna)
-# ID <- sample(ID, N.nna, replace = FALSE)
-# fitT <- vector("list", nfold)
-#
-# for (ifold in 1:nfold) { # ifold=5
-#   ind.test <- ind.nna[which(ID == ifold)]
-#   Yte <- Y
-#   Yte[-ind.test] <- NA
-#   Ytr <- Y
-#   Ytr[ind.test] <- NA
-#
-#   naind <- (!is.na(Ytr)) + 0 # matrix(1,n,q)
-#   misind <- any(naind == 0) + 0
-#   Ytr[is.na(Ytr)] <- 0
-#   # # zerosol <- nbZeroSol(Ytr, X0, c_index= cIndex, ofset, naind)
-#   # compromised convergence criteria for enhanced speed
-#   control_cv <- control; #control_cv$lamMinFac = 1e-10;
-#   # control_cv$spU  = 0.8; control_cv$spV = 0.9
-#   cat('Fold ', ifold, '\n')
-#   tic()
-#   fitT[[ifold]] <- nbfar_cpp(Ytr, X0,
-#                              nlam = nlambda,
-#                              cindex = cIndex,
-#                              ofset = ofset, initw = initW,
-#                              Dini = xx$D, Zini = Z0, PhiIni = Phi0,
-#                              Uini = xx$U, Vini = xx$V,
-#                              lmax = lambda.max,
-#                              control_cv, misind,
-#                              naind, zerosol,
-#                              control$maxit, epsilon = control$epsilon)
-#   fitF <- fitT[[ifold]]
-#   a = toc()
-#   cat('Fold ', ifold, 'done ', a$toc -a$tic,'\n')
-#
-#   for (im in 1:fitF$nkpath) {
-#     lam <- fitF$lamKpath[im, 1]
-#     insel <- which(fitF$lamseq == lam)
-#     mu.test <- fitF$mukpath[, , im]; mu.test[-ind.test] <- NA
-#     eta.test <- fitF$etapath[, , im]; eta.test[-ind.test] <- NA
-#     tttval <- nbrrr_likelihood(Yte, mu.test, eta.test, fitF$phipath[, im],
-#                                (!is.na(Yte)) + 0)
-#     dev[ifold, insel] <- tttval[1]
-#     sdcal[ifold, insel] <- tttval[2]
-#     tec[ifold] <- tttval[3]
-#   }
-# }
-# fit.nfold[[k]] <- fitT
-
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/nbfar.R
 \name{nbfar}
 \alias{nbfar}
-\title{Negative binomial co-sparse factor regression}
+\title{Negative binomial co-sparse factor regression  (NBFAR)}
 \usage{
 nbfar(
   Yt,
@@ -21,15 +21,15 @@ nbfar(
 \arguments{
 \item{Yt}{response matrix}
 
-\item{X}{covariate matrix; when X = NULL, the fucntion performs unsupervised learning}
+\item{X}{design matrix; when X = NULL, we set X as identity matrix and perform generalized sparse PCA.}
 
-\item{maxrank}{an integer specifying the desired rank/number of factors}
+\item{maxrank}{an integer specifying the maximum possible rank of the coefficient matrix or the number of factors}
 
 \item{nlambda}{number of lambda values to be used along each path}
 
-\item{cIndex}{control index, specifying index of control variable in the design matrix X}
+\item{cIndex}{specify index of control variables in the design matrix X}
 
-\item{ofset}{offset matrix specified}
+\item{ofset}{offset matrix or microbiome data analysis specific scaling: common sum scaling = CSS (default), total sum scaling = TSS, median-ratio scaling = MRS, centered-log-ratio scaling  = CLR}
 
 \item{control}{a list of internal parameters controlling the model fitting}
 
@@ -37,20 +37,20 @@ nbfar(
 
 \item{PATH}{TRUE/FALSE for generating solution path of sequential estimate after cross-validation step}
 
-\item{nthread}{number of thread to be used for parallelization}
+\item{nthread}{number of thread to be used for parallelizing the crossvalidation procedure}
 
-\item{trace}{checking progress of cross validation error}
+\item{trace}{TRUE/FALSE checking progress of cross validation error}
 }
 \value{
 \item{C}{estimated coefficient matrix; based on GIC}
-  \item{Z}{estimated control variable coefficient matrix}
-  \item{Phi}{estimted dispersion parameters}
-  \item{U}{estimated U matrix (generalize latent factor weights)}
-  \item{D}{estimated singular values}
-  \item{V}{estimated V matrix (factor loadings)}
+\item{Z}{estimated control variable coefficient matrix}
+\item{Phi}{estimted dispersion parameters}
+\item{U}{estimated U matrix (generalize latent factor weights)}
+\item{D}{estimated singular values}
+\item{V}{estimated V matrix (factor loadings)}
 }
 \description{
-Model parameter estimation using sequential approach. The algorith automatically stops after extracting sufficient unit rank components.
+To estimate a low-rank and sparse coefficient matrix in large/high dimensional setting, the approach extracts unit-rank components of required matrix in sequential order. The algorithm automatically stops after extracting sufficient unit rank components.
 }
 \examples{
 \donttest{

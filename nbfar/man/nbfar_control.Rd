@@ -2,7 +2,7 @@
 % Please edit documentation in R/nbfar.R
 \name{nbfar_control}
 \alias{nbfar_control}
-\title{Default control parameters for negative binomial factor regression}
+\title{Control parameters for NBFAR and NBRRR}
 \usage{
 nbfar_control(
   maxit = 5000,
@@ -21,31 +21,31 @@ nbfar_control(
 \arguments{
 \item{maxit}{maximum iteration for each sequential steps}
 
-\item{epsilon}{tolerence value set for convergene of gcure}
+\item{epsilon}{tolerance value required for convergence of inner loop in GCURE}
 
 \item{elnetAlpha}{elastic net penalty parameter}
 
-\item{gamma0}{power parameter in the adaptive weights}
+\item{gamma0}{power parameter for generating the adaptive weights}
 
 \item{spU}{maximum proportion of nonzero elements in each column of U}
 
 \item{spV}{maximum proportion of nonzero elements in each column of V}
 
-\item{lamMaxFac}{a multiplier of calculated lambda_max}
+\item{lamMaxFac}{a multiplier of the computed maximum value (lambda_max) of the tuning parameter}
 
-\item{lamMinFac}{a multiplier of determing lambda_min as a fraction of lambda_max}
+\item{lamMinFac}{a multiplier to determine lambda_min as a fraction of lambda_max}
 
-\item{initmaxit}{maximum iteration for initialization problem}
+\item{initmaxit}{maximum iteration for minimizing the objective function while computing the initial estimates of the model parameter}
 
-\item{initepsilon}{tolerence value for convergene in the initialization problem}
+\item{initepsilon}{tolerance value required for the convergence of the objective function while computing the initial estimates of the model parameter}
 
-\item{objI}{1 or 0 convergence on the basis of objective function or not}
+\item{objI}{1 or 0  to indicate that the convergence will be on the basis of objective function or not}
 }
 \value{
-a list of controling parameter.
+a list of controlling parameter.
 }
 \description{
-Control parameters for NBFAR and NBRRR
+Default value for a list of control parameters that are used to estimate the parameters of negative binomial co-sparse factor regression (NBFAR) and negative binomial reduced rank regression (NBRRR).
 }
 \examples{
 control <- nbfar_control()
