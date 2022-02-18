@@ -50,3 +50,6 @@ Default value for a list of control parameters that are used to estimate the par
 \examples{
 control <- nbfar_control()
 }
+\references{
+Mishra, A., Müller, C. (2022) \emph{Negative binomial factor regression models with application to microbiome data analysis.  https://doi.org/10.1101/2021.11.29.470304}
+}

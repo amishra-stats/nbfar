@@ -19,6 +19,8 @@
 #' @examples
 #' control <- nbfar_control()
 #' @useDynLib nbfar
+#' @references
+#' Mishra, A., Müller, C. (2022) \emph{Negative binomial factor regression models with application to microbiome data analysis.  https://doi.org/10.1101/2021.11.29.470304}
 nbfar_control <- function(maxit = 5000, epsilon = 1e-7,
                           elnetAlpha = 0.95,
                           gamma0 = 1,
@@ -117,6 +119,8 @@ nbfar_control <- function(maxit = 5000, epsilon = 1e-7,
 #' X <- sim.sample$X[1:n, ]
 #' Y <- sim.sample$Y[1:n, ]
 #'
+#' @references
+#' Mishra, A., Müller, C. (2022) \emph{Negative binomial factor regression models with application to microbiome data analysis.  https://doi.org/10.1101/2021.11.29.470304}
 nbfar_sim <- function(U, D, V, n, Xsigma, C0,disp,depth) {
   ## finding basis along more number of columns of data vector
   basis.vec <- function(x) {
@@ -262,6 +266,8 @@ nbfar_sim <- function(U, D, V, n, Xsigma, C0,disp,depth) {
 #' # nbrrr_test <- nbrrr(Y, X, maxrank = 5, cIndex = NULL, ofset = offset,
 #' #                       control = control_nbrr, nfold = 5)
 #' }
+#' @references
+#' Mishra, A., Müller, C. (2022) \emph{Negative binomial factor regression models with application to microbiome data analysis.  https://doi.org/10.1101/2021.11.29.470304}
 nbrrr <- function(Yt, X, maxrank = 10,
                   cIndex = NULL, ofset = NULL,
                   control = list(), nfold = 5, trace = FALSE) {
@@ -502,6 +508,8 @@ nbrrr <- function(Yt, X, maxrank = 10,
 #' # nbfar_test <- nbfar(Y, X, maxrank = 5, nlambda = 20, cIndex = NULL,
 #' # ofset = offset, control = control_nbfar, nfold = 5, PATH = F)
 #' }
+#' @references
+#' Mishra, A., Müller, C. (2022) \emph{Negative binomial factor regression models with application to microbiome data analysis.  https://doi.org/10.1101/2021.11.29.470304}
 nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
                   ofset = NULL, control = list(), nfold = 5,
                   PATH = FALSE, nthread = 1, trace = FALSE) {

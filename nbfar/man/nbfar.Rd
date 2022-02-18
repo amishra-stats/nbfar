@@ -118,3 +118,6 @@ spV = 0.6, lamMinFac = 1e-10, epsilon = 1e-5)
 # ofset = offset, control = control_nbfar, nfold = 5, PATH = F)
 }
 }
+\references{
+Mishra, A., Müller, C. (2022) \emph{Negative binomial factor regression models with application to microbiome data analysis.  https://doi.org/10.1101/2021.11.29.470304}
+}

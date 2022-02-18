@@ -1,0 +1,21 @@
+---
+  title: "Negative Binomial factor regression with application to microbiome data analysis"
+output: rmarkdown::pdf_document
+author: "Aditya Mishra, Christian L. Müller"
+date: "`r Sys.Date()`"
+vignette: >
+  %\VignetteIndexEntry{Negative Binomial factor regression with application to microbiome data analysis}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(nbfar)
+```

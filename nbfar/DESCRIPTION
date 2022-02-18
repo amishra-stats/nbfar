@@ -1,6 +1,6 @@
 Package: nbfar
 Type: Package
-Title: Negative binomial factor regression models with application to microbiome data analysis
+Title: Negative Binomial Factor Regression Models with Application to Microbiome Data Analysis
 Version: 0.1
 Date: 2022-02-17
 Authors@R: 
@@ -13,18 +13,19 @@ Authors@R:
              role = "aut"))
 Maintainer: Aditya Mishra <amishra@flatironinstitute.org>
 Description: The R package nbfar implements Negative Binomial factor regression models that allow the estimation of structured (sparse) associations between a feature matrix X and overdispersed count data Y. The package has been developed with microbiome count data Y in mind and can be used, e.g., to associate host or environmental covariates with microbial abundances. Currently, two models are available: a) Negative Binomial reduced rank regression (NB-RRR), b) Negative Binomial co-sparse factor regression (NB-FAR).
-URL: https://github.com/amishra-stats/nbfar
+URL: https://github.com/amishra-stats/nbfar, https://www.biorxiv.org/content/10.1101/2021.11.29.470304v1
 Depends: R (>= 3.4), stats, utils
 Imports: Rcpp (>= 0.12.9), MASS, magrittr, rrpack, glmnet, RcppParallel, mpath
 License: GPL (>= 3.0)
 Encoding: UTF-8
-LazyData: TRUE
+LazyData: FALSE
 LinkingTo: Rcpp, RcppArmadillo, RcppParallel
 NeedsCompilation: yes
+VignetteBuilder: knitr
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.2
 Suggests: 
     rmarkdown,
-    knitr
-VignetteBuilder: knitr
-
+    knitr,
+    spelling
+Language: en-US

@@ -108,3 +108,6 @@ control_nbrr <- nbfar_control(initmaxit = 5000, initepsilon = 1e-4)
 #                       control = control_nbrr, nfold = 5)
 }
 }
+\references{
+Mishra, A., Müller, C. (2022) \emph{Negative binomial factor regression models with application to microbiome data analysis.  https://doi.org/10.1101/2021.11.29.470304}
+}
