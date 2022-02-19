@@ -24,7 +24,7 @@ Using `nbfar` we analyzed the [American Gut Project data](https://journals.asm.o
 and [Vioscreen](https://www.vioscreen.com/Home) information to identify robust links between diet and life style 
 features and broad abundance patterns of microbial families. 
 
-The manually curated data file as 'phyloseq' object is available [here](). 
+The manually curated data file as 'phyloseq' object is available [here](https://github.com/amishra-stats/nbfar/raw/master/manuscript_file/final_ag_vio.rda). 
 
 Some of our findings are summarized in the Figure below where we show microbial families and host-associated feature 
 biclusters automatically identified by `nbfar`.
