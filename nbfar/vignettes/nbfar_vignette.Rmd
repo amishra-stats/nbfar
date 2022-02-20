@@ -26,7 +26,7 @@ library(nbfar)
 
 # Simulation examples 
 
-We showcase the usage of **nbfar** and  **nbrrr** on simulated data. 
+We showcase the usage of **nbfar** and  **nbrrr** on simulated data. We simulate response and covariates matrix for multivariate negative binomial regression with a low-rank and sparse coefficient matrix. The coefficient matrix **C** is expressed in terms of **U** (left singular vector), **D** (singular values) and **V** (right singular vector).
 
 ### Data simulation
 
@@ -117,6 +117,7 @@ Ym <- matrix(y, n, q)   # 20% of entries are missing at random
 
 ###  Negative Binomial reduced rank regression: **nbrrr** 
 
+In the range of 1 to maxrank, the estimation procedure selects the rank r of the coefficient matrix using a cross-validation approach. For the selected rank, a rank r coefficient matrix is estimated that best fits the observations.
 
 ```{r}
 # Model fit: (full data)
@@ -139,7 +140,9 @@ nbrrr_testm <- nbrrr(Ym, X, maxrank = 5, control = control_r3, nfold = 5,trace =
 ###  Negative Binomial co-sparse factor regression: **nbfar** 
 
 
-
+To estimate a low-rank and sparse coefficient matrix in large/high dimensional setting, the approach extracts unit-rank components of required matrix in sequential order. The algorithm automatically stops after extracting sufficient unit rank components.
+ 
+ 
 ```{r}
 # Model fit: (full data)
 RcppParallel::setThreadOptions(numThreads = nthread)
