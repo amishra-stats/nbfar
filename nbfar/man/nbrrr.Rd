@@ -9,7 +9,7 @@ nbrrr(
   X,
   maxrank = 10,
   cIndex = NULL,
-  ofset = NULL,
+  ofset = "CSS",
   control = list(),
   nfold = 5,
   trace = FALSE,
@@ -48,64 +48,13 @@ In the range of 1 to maxrank, the estimation procedure selects the rank r of the
 }
 \examples{
 \donttest{
-## Model specification:
-SD <- 123
-set.seed(SD)
-p <- 50; n <- 200
-pz <- 0
-nrank <- 3                # true rank
-rank.est <- 5             # estimated rank
-nlam <- 20                # number of tuning parameter
-s  = 0.5
-q <- 30
-control <- nbfar_control()  # control parameters
-#
-#
-## Generate data
-D <- rep(0, nrank)
-V <- matrix(0, ncol = nrank, nrow = q)
-U <- matrix(0, ncol = nrank, nrow = p)
-#
-U[, 1] <- c(sample(c(1, -1), 8, replace = TRUE), rep(0, p - 8))
-U[, 2] <- c(rep(0, 5), sample(c(1, -1), 9, replace = TRUE), rep(0, p - 14))
-U[, 3] <- c(rep(0, 11), sample(c(1, -1), 9, replace = TRUE), rep(0, p - 20))
-#
-  # for similar type response type setting
-  V[, 1] <- c(rep(0, 8), sample(c(1, -1), 8,
-    replace =
-      TRUE
-  ) * runif(8, 0.3, 1), rep(0, q - 16))
-  V[, 2] <- c(rep(0, 20), sample(c(1, -1), 8,
-    replace =
-      TRUE
-  ) * runif(8, 0.3, 1), rep(0, q - 28))
-  V[, 3] <- c(
-    sample(c(1, -1), 5, replace = TRUE) * runif(5, 0.3, 1), rep(0, 23),
-    sample(c(1, -1), 2, replace = TRUE) * runif(2, 0.3, 1), rep(0, q - 30)
-  )
-U[, 1:3] <- apply(U[, 1:3], 2, function(x) x / sqrt(sum(x^2)))
-V[, 1:3] <- apply(V[, 1:3], 2, function(x) x / sqrt(sum(x^2)))
-#
-D <- s * c(4, 6, 5) # signal strength varries as per the value of s
-or <- order(D, decreasing = TRUE)
-U <- U[, or]
-V <- V[, or]
-D <- D[or]
-C <- U \%*\% (D * t(V)) # simulated coefficient matrix
-intercept <- rep(0.5, q) # specifying intercept to the model:
-C0 <- rbind(intercept, C)
-#
-Xsigma <- 0.5^abs(outer(1:p, 1:p, FUN = "-"))
-# Simulated data
-sim.sample <- nbfar_sim(U, D, V, n, Xsigma, C0,disp = 3, depth = 10)  # Simulated sample
-# Dispersion parameter
-X <- sim.sample$X[1:n, ]
-Y <- sim.sample$Y[1:n, ]
-X0 <- cbind(1, X)                     # 1st column accounting for intercept
+## Load simulated data set:
+data('simulate_nbfar')
+attach(simulate_nbfar)
 
 # Model with known offset
 set.seed(1234)
-offset <- log(10)*matrix(1,n,q)
+offset <- log(10)*matrix(1,n,ncol(Y))
 control_nbrr <- nbfar_control(initmaxit = 5000, initepsilon = 1e-4)
 # nbrrr_test <- nbrrr(Y, X, maxrank = 5, cIndex = NULL, ofset = offset,
 #                       control = control_nbrr, nfold = 5)

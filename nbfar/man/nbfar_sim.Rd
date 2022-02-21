@@ -84,7 +84,10 @@ sim.sample <- nbfar_sim(U, D, V, n, Xsigma, C0,disp = 3, depth = 10)  # Simulate
 # Dispersion parameter
 X <- sim.sample$X[1:n, ]
 Y <- sim.sample$Y[1:n, ]
-
+# disp = 3; depth = 10;
+# simulate_nbfar <- list(Y = Y,X = X, U = U, D = D, V = V, n=n,
+# Xsigma = Xsigma, C0 = C0,disp =disp, depth =depth)
+# save(simulate_nbfar, file = 'data/simulate_nbfar.RData')
 }
 \references{
 Mishra, A., Müller, C. (2022) \emph{Negative binomial factor regression models with application to microbiome data analysis.  https://doi.org/10.1101/2021.11.29.470304}

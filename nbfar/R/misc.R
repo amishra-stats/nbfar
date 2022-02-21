@@ -28,20 +28,19 @@ nbCol <- function(Y, X0, ofset, naind) {
 
 
 
-
+#' Suitably generates offset matrix for the multivariate regression problem
+#'
 #' @param Y outcome matrix
 #' @param ofset offset matrix or microbiome data analysis specific scaling: common sum scaling = CSS (default), total sum scaling = TSS, median-ratio scaling = MRS, centered-log-ratio scaling  = CLR
 #' @importFrom stats median
 offset_sacling = function(Y, ofset){
   n <- nrow(Y)
   q <- ncol(Y)
-  if (is.null(ofset)) {
-    ofset <- matrix(0, nrow = n, ncol = q)
-    return(ofset)
-  } else if (is.matrix(ofset)){
+  if (is.matrix(ofset)){
     return(ofset)
   } else if (tolower(ofset) == 'css'){
-    ofset <- matrix(0, nrow = n, ncol = q)
+    # ofset <- matrix(0, nrow = n, ncol = q)
+    ofset <- matrix(log(rowSums(Y, na.rm = T)),n,q)
     return(ofset)
   } else if (tolower(ofset) == 'tss'){
     ofset <- matrix(log(rowSums(Y,na.rm = T)),n,q)

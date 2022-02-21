@@ -124,14 +124,14 @@ In the range of 1 to maxrank, the estimation procedure selects the rank r of the
 set.seed(example_seed)
 control_r3 <- nbfar_control(initmaxit = 10000, initepsilon = 1e-5,
                             objI = 1)
-nbrrr_test <- nbrrr(Y, X, maxrank = 5, control = control_r3, nfold = 5, trace = F)
+# nbrrr_test <- nbrrr(Y, X, maxrank = 5, control = control_r3, nfold = 5, trace = F)
 
 
 # Model fit:  (missing data)
 set.seed(example_seed)
 control_r3 <- nbfar_control(initmaxit = 10000, initepsilon = 1e-5,
                             objI = 1)
-nbrrr_testm <- nbrrr(Ym, X, maxrank = 5, control = control_r3, nfold = 5,trace = F)
+# nbrrr_testm <- nbrrr(Ym, X, maxrank = 5, control = control_r3, nfold = 5,trace = F)
 
 ```
 
@@ -152,10 +152,10 @@ control_nbfar <- nbfar_control(gamma0 = 1, spU = sp, spV = 20/q,
                                lamMinFac = 1e-7, epsilon = 1e-4,
                                objI = 0,
                                initmaxit = 10000, initepsilon = 1e-7)
-nbfar_test <- nbfar(Y, X, maxrank = rank.est, nlambda = nlam,
-                    cIndex = NULL,
-                    ofset = NULL, control = control_nbfar, nfold = 5,
-                    PATH = FALSE, nthread = nthread,trace = F)
+# nbfar_test <- nbfar(Y, X, maxrank = rank.est, nlambda = nlam,
+#                     cIndex = NULL,
+#                     ofset = NULL, control = control_nbfar, nfold = 5,
+#                     PATH = FALSE, nthread = nthread,trace = F)
 
 # Model fit: (missing data)
 RcppParallel::setThreadOptions(numThreads = nthread)
@@ -165,10 +165,10 @@ control_nbfar <- nbfar_control(gamma0 = 1, spU = sp, spV = 20/q,
                                lamMinFac = 1e-7, epsilon = 1e-4,
                                objI = 0,
                                initmaxit = 10000, initepsilon = 1e-7)
-nbfar_testm <- nbfar(Ym, X, maxrank = rank.est, nlambda = nlam,
-                    cIndex = NULL,
-                    ofset = NULL, control = control_nbfar, nfold = 5,
-                    PATH = FALSE, nthread = nthread,trace = F)
+# nbfar_testm <- nbfar(Ym, X, maxrank = rank.est, nlambda = nlam,
+#                     cIndex = NULL,
+#                     ofset = NULL, control = control_nbfar, nfold = 5,
+#                     PATH = FALSE, nthread = nthread,trace = F)
 
 ```
 

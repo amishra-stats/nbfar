@@ -118,7 +118,10 @@ nbfar_control <- function(maxit = 5000, epsilon = 1e-7,
 #' # Dispersion parameter
 #' X <- sim.sample$X[1:n, ]
 #' Y <- sim.sample$Y[1:n, ]
-#'
+#' # disp = 3; depth = 10;
+#' # simulate_nbfar <- list(Y = Y,X = X, U = U, D = D, V = V, n=n,
+#' # Xsigma = Xsigma, C0 = C0,disp =disp, depth =depth)
+#' # save(simulate_nbfar, file = 'data/simulate_nbfar.RData')
 #' @references
 #' Mishra, A., Müller, C. (2022) \emph{Negative binomial factor regression models with application to microbiome data analysis.  https://doi.org/10.1101/2021.11.29.470304}
 nbfar_sim <- function(U, D, V, n, Xsigma, C0,disp,depth) {
@@ -205,64 +208,13 @@ nbfar_sim <- function(U, D, V, n, Xsigma, C0,disp,depth) {
 #' @useDynLib nbfar
 #' @examples
 #' \donttest{
-#' ## Model specification:
-#' SD <- 123
-#' set.seed(SD)
-#' p <- 50; n <- 200
-#' pz <- 0
-#' nrank <- 3                # true rank
-#' rank.est <- 5             # estimated rank
-#' nlam <- 20                # number of tuning parameter
-#' s  = 0.5
-#' q <- 30
-#' control <- nbfar_control()  # control parameters
-#' #
-#' #
-#' ## Generate data
-#' D <- rep(0, nrank)
-#' V <- matrix(0, ncol = nrank, nrow = q)
-#' U <- matrix(0, ncol = nrank, nrow = p)
-#' #
-#' U[, 1] <- c(sample(c(1, -1), 8, replace = TRUE), rep(0, p - 8))
-#' U[, 2] <- c(rep(0, 5), sample(c(1, -1), 9, replace = TRUE), rep(0, p - 14))
-#' U[, 3] <- c(rep(0, 11), sample(c(1, -1), 9, replace = TRUE), rep(0, p - 20))
-#' #
-#'   # for similar type response type setting
-#'   V[, 1] <- c(rep(0, 8), sample(c(1, -1), 8,
-#'     replace =
-#'       TRUE
-#'   ) * runif(8, 0.3, 1), rep(0, q - 16))
-#'   V[, 2] <- c(rep(0, 20), sample(c(1, -1), 8,
-#'     replace =
-#'       TRUE
-#'   ) * runif(8, 0.3, 1), rep(0, q - 28))
-#'   V[, 3] <- c(
-#'     sample(c(1, -1), 5, replace = TRUE) * runif(5, 0.3, 1), rep(0, 23),
-#'     sample(c(1, -1), 2, replace = TRUE) * runif(2, 0.3, 1), rep(0, q - 30)
-#'   )
-#' U[, 1:3] <- apply(U[, 1:3], 2, function(x) x / sqrt(sum(x^2)))
-#' V[, 1:3] <- apply(V[, 1:3], 2, function(x) x / sqrt(sum(x^2)))
-#' #
-#' D <- s * c(4, 6, 5) # signal strength varries as per the value of s
-#' or <- order(D, decreasing = TRUE)
-#' U <- U[, or]
-#' V <- V[, or]
-#' D <- D[or]
-#' C <- U %*% (D * t(V)) # simulated coefficient matrix
-#' intercept <- rep(0.5, q) # specifying intercept to the model:
-#' C0 <- rbind(intercept, C)
-#' #
-#' Xsigma <- 0.5^abs(outer(1:p, 1:p, FUN = "-"))
-#' # Simulated data
-#' sim.sample <- nbfar_sim(U, D, V, n, Xsigma, C0,disp = 3, depth = 10)  # Simulated sample
-#' # Dispersion parameter
-#' X <- sim.sample$X[1:n, ]
-#' Y <- sim.sample$Y[1:n, ]
-#' X0 <- cbind(1, X)                     # 1st column accounting for intercept
+#' ## Load simulated data set:
+#' data('simulate_nbfar')
+#' attach(simulate_nbfar)
 #'
 #' # Model with known offset
 #' set.seed(1234)
-#' offset <- log(10)*matrix(1,n,q)
+#' offset <- log(10)*matrix(1,n,ncol(Y))
 #' control_nbrr <- nbfar_control(initmaxit = 5000, initepsilon = 1e-4)
 #' # nbrrr_test <- nbrrr(Y, X, maxrank = 5, cIndex = NULL, ofset = offset,
 #' #                       control = control_nbrr, nfold = 5)
@@ -270,7 +222,7 @@ nbfar_sim <- function(U, D, V, n, Xsigma, C0,disp,depth) {
 #' @references
 #' Mishra, A., Müller, C. (2022) \emph{Negative binomial factor regression models with application to microbiome data analysis.  https://doi.org/10.1101/2021.11.29.470304}
 nbrrr <- function(Yt, X, maxrank = 10,
-                  cIndex = NULL, ofset = NULL,
+                  cIndex = NULL, ofset = 'CSS',
                   control = list(), nfold = 5, trace = FALSE, verbose = TRUE) {
   if(verbose) cat("Initializing...", "\n")
   n <- nrow(Yt)
@@ -447,64 +399,13 @@ nbrrr <- function(Yt, X, maxrank = 10,
 #' @importFrom graphics title
 #' @examples
 #' \donttest{
-#' ## Model specification:
-#' SD <- 123
-#' set.seed(SD)
-#' p <- 100; n <- 200
-#' pz <- 0
-#' nrank <- 3                # true rank
-#' rank.est <- 5             # estimated rank
-#' nlam <- 20                # number of tuning parameter
-#' s  = 0.5
-#' q <- 30
-#' control <- nbfar_control()  # control parameters
-#' #
-#' #
-#' ## Generate data
-#' D <- rep(0, nrank)
-#' V <- matrix(0, ncol = nrank, nrow = q)
-#' U <- matrix(0, ncol = nrank, nrow = p)
-#' #
-#' U[, 1] <- c(sample(c(1, -1), 8, replace = TRUE), rep(0, p - 8))
-#' U[, 2] <- c(rep(0, 5), sample(c(1, -1), 9, replace = TRUE), rep(0, p - 14))
-#' U[, 3] <- c(rep(0, 11), sample(c(1, -1), 9, replace = TRUE), rep(0, p - 20))
-#' #
-#'   # for similar type response type setting
-#'   V[, 1] <- c(rep(0, 8), sample(c(1, -1), 8,
-#'     replace =
-#'       TRUE
-#'   ) * runif(8, 0.3, 1), rep(0, q - 16))
-#'   V[, 2] <- c(rep(0, 20), sample(c(1, -1), 8,
-#'     replace =
-#'       TRUE
-#'   ) * runif(8, 0.3, 1), rep(0, q - 28))
-#'   V[, 3] <- c(
-#'     sample(c(1, -1), 5, replace = TRUE) * runif(5, 0.3, 1), rep(0, 23),
-#'     sample(c(1, -1), 2, replace = TRUE) * runif(2, 0.3, 1), rep(0, q - 30)
-#'   )
-#' U[, 1:3] <- apply(U[, 1:3], 2, function(x) x / sqrt(sum(x^2)))
-#' V[, 1:3] <- apply(V[, 1:3], 2, function(x) x / sqrt(sum(x^2)))
-#' #
-#' D <- s * c(4, 6, 5) # signal strength varries as per the value of s
-#' or <- order(D, decreasing = TRUE)
-#' U <- U[, or]
-#' V <- V[, or]
-#' D <- D[or]
-#' C <- U %*% (D * t(V)) # simulated coefficient matrix
-#' intercept <- rep(0.5, q) # specifying intercept to the model:
-#' C0 <- rbind(intercept, C)
-#' #
-#' Xsigma <- 0.5^abs(outer(1:p, 1:p, FUN = "-"))
-#' # Simulated data
-#' sim.sample <- nbfar_sim(U, D, V, n, Xsigma, C0,disp = 3, depth = 10)  # Simulated sample
-#' # Dispersion parameter
-#' X <- sim.sample$X[1:n, ]
-#' Y <- sim.sample$Y[1:n, ]
-#' X0 <- cbind(1, X)                     # 1st column accounting for intercept
+#' ## Load simulated data set:
+#' data('simulate_nbfar')
+#' attach(simulate_nbfar)
 #'
 #' # Model with known offset
 #' set.seed(1234)
-#' offset <- log(10)*matrix(1,n,q)
+#' offset <- log(10)*matrix(1,n,ncol(Y))
 #' control_nbfar <- nbfar_control(initmaxit = 5000, gamma0 = 2, spU = 0.5,
 #' spV = 0.6, lamMinFac = 1e-10, epsilon = 1e-5)
 #' # nbfar_test <- nbfar(Y, X, maxrank = 5, nlambda = 20, cIndex = NULL,
@@ -513,7 +414,7 @@ nbrrr <- function(Yt, X, maxrank = 10,
 #' @references
 #' Mishra, A., Müller, C. (2022) \emph{Negative binomial factor regression models with application to microbiome data analysis.  https://doi.org/10.1101/2021.11.29.470304}
 nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
-                  ofset = NULL, control = list(), nfold = 5,
+                  ofset = 'CSS', control = list(), nfold = 5,
                   PATH = FALSE, nthread = 1, trace = FALSE, verbose = TRUE) {
   if(verbose) cat("Initializing...", "\n")
   n <- nrow(Yt)
