@@ -15,7 +15,8 @@ nbfar(
   nfold = 5,
   PATH = FALSE,
   nthread = 1,
-  trace = FALSE
+  trace = FALSE,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -40,6 +41,8 @@ nbfar(
 \item{nthread}{number of thread to be used for parallelizing the crossvalidation procedure}
 
 \item{trace}{TRUE/FALSE checking progress of cross validation error}
+
+\item{verbose}{TRUE/FALSE checking progress of estimation procedure}
 }
 \value{
 \item{C}{estimated coefficient matrix; based on GIC}

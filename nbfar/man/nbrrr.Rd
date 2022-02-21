@@ -12,7 +12,8 @@ nbrrr(
   ofset = NULL,
   control = list(),
   nfold = 5,
-  trace = FALSE
+  trace = FALSE,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ nbrrr(
 \item{nfold}{number of folds in k-fold crossvalidation}
 
 \item{trace}{TRUE/FALSE checking progress of cross validation error}
+
+\item{verbose}{TRUE/FALSE checking progress of estimation procedure}
 }
 \value{
 \item{C}{estimated coefficient matrix}

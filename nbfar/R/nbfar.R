@@ -190,6 +190,7 @@ nbfar_sim <- function(U, D, V, n, Xsigma, C0,disp,depth) {
 #' @param control a list of internal parameters controlling the model fitting
 #' @param nfold number of folds in k-fold crossvalidation
 #' @param trace TRUE/FALSE checking progress of cross validation error
+#' @param verbose TRUE/FALSE checking progress of estimation procedure
 #' @return
 #'   \item{C}{estimated coefficient matrix}
 #'   \item{Z}{estimated control variable coefficient matrix}
@@ -270,8 +271,8 @@ nbfar_sim <- function(U, D, V, n, Xsigma, C0,disp,depth) {
 #' Mishra, A., Müller, C. (2022) \emph{Negative binomial factor regression models with application to microbiome data analysis.  https://doi.org/10.1101/2021.11.29.470304}
 nbrrr <- function(Yt, X, maxrank = 10,
                   cIndex = NULL, ofset = NULL,
-                  control = list(), nfold = 5, trace = FALSE) {
-  cat("Initializing...", "\n")
+                  control = list(), nfold = 5, trace = FALSE, verbose = TRUE) {
+  if(verbose) cat("Initializing...", "\n")
   n <- nrow(Yt)
   p <- ncol(X)
   q <- ncol(Yt)
@@ -331,7 +332,7 @@ nbrrr <- function(Yt, X, maxrank = 10,
 
   # rank selection via cross validation
   for (k in 1:maxrank) { # desired rank extraction
-    cat('Cross-validation for rank r: ', k, '\n')
+    if(verbose) cat('Cross-validation for rank r: ', k, '\n')
     fitT <- vector("list", nfold)
     # C0 <- Uk[, 1:k] %*% (Dk[1:k]*t(Vk[, 1:k]))
     for (ifold in 1:nfold) { # ifold=3; k = 3
@@ -431,6 +432,7 @@ nbrrr <- function(Yt, X, maxrank = 10,
 #' @param PATH TRUE/FALSE for generating solution path of sequential estimate after cross-validation step
 #' @param nthread number of thread to be used for parallelizing the crossvalidation procedure
 #' @param trace TRUE/FALSE checking progress of cross validation error
+#' @param verbose TRUE/FALSE checking progress of estimation procedure
 #' @return
 #'   \item{C}{estimated coefficient matrix; based on GIC}
 #'   \item{Z}{estimated control variable coefficient matrix}
@@ -512,8 +514,8 @@ nbrrr <- function(Yt, X, maxrank = 10,
 #' Mishra, A., Müller, C. (2022) \emph{Negative binomial factor regression models with application to microbiome data analysis.  https://doi.org/10.1101/2021.11.29.470304}
 nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
                   ofset = NULL, control = list(), nfold = 5,
-                  PATH = FALSE, nthread = 1, trace = FALSE) {
-  cat("Initializing...", "\n")
+                  PATH = FALSE, nthread = 1, trace = FALSE, verbose = TRUE) {
+  if(verbose) cat("Initializing...", "\n")
   n <- nrow(Yt)
   p <- ncol(X)
   q <- ncol(Yt)
@@ -593,9 +595,9 @@ nbfar <- function(Yt, X, maxrank = 3, nlambda = 40, cIndex = NULL,
       wd = abs(xx$D)^-control$gamma0,
       wv = abs(xx$V)^-control$gamma0)
     lambda.max <- lmax_nb(Y, X,ofset)
-    cat("Initializing unit-rank unit ", k, ': [Error,iteration,D] = [',
+    if(verbose) cat("Initializing unit-rank unit ", k, ': [Error,iteration,D] = [',
         with(xx,diffobj[maxit]), xx$maxit, xx$D, ']', '\n')
-    cat("Cross validation for component:", k, "\n")
+    if(verbose) cat("Cross validation for component:", k, "\n")
 
     ## store the deviance of the test data
     if (nthread > 1) {

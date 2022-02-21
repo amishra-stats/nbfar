@@ -1,20 +1,20 @@
 Package: nbfar
 Type: Package
-Title: Negative Binomial Factor Regression Models with Application to Microbiome Data Analysis
+Title: Negative Binomial Factor Regression  Models ('nbfar')
 Version: 0.1
 Date: 2022-02-17
 Authors@R: 
-    c(person(given = "Aditya",
-             family = "Mishra",
-             role = c("aut", "cre"),
-             email = "amishra@flatironinstitute.org"),
-      person(given = "Christian",
-             family = "Mueller",
-             role = "aut"))
+    c(person(given = 'Aditya',
+             family = 'Mishra',
+             role = c('aut', 'cre'),
+             email = 'amishra@flatironinstitute.org'),
+      person(given = 'Christian',
+             family = 'Mueller',
+             role = 'aut'))
 Maintainer: Aditya Mishra <amishra@flatironinstitute.org>
-Description: The R package nbfar implements Negative Binomial factor regression models that allow the estimation of structured (sparse) associations between a feature matrix X and overdispersed count data Y. The package has been developed with microbiome count data Y in mind and can be used, e.g., to associate host or environmental covariates with microbial abundances. Currently, two models are available: a) Negative Binomial reduced rank regression (NB-RRR), b) Negative Binomial co-sparse factor regression (NB-FAR).
+Description: We developed a negative binomial factor regression model to estimate structured (sparse) associations between a feature matrix X and overdispersed count data Y.  With 'nbfar', microbiome count data Y can be used, for example, to associate host or environmental covariates with microbial abundances. Currently, two models are available: a) Negative Binomial reduced rank regression (NB-RRR), b) Negative Binomial co-sparse factor regression (NB-FAR). Please refer the manuscript 'Mishra, A. K., & Müller, C. L. (2021). Negative Binomial factor regression with application to microbiome data analysis. bioRxiv.' for more details. 
 URL: https://github.com/amishra-stats/nbfar, https://www.biorxiv.org/content/10.1101/2021.11.29.470304v1
-Depends: R (>= 3.4), stats, utils
+Depends: R (>= 3.5.0), stats, utils
 Imports: Rcpp (>= 0.12.9), MASS, magrittr, rrpack, glmnet, RcppParallel, mpath
 License: GPL (>= 3.0)
 Encoding: UTF-8
