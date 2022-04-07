@@ -280,11 +280,13 @@ arma::vec nbrrr_likelihood(const arma::mat &Y, const arma::mat &MU,
   int i,j,k, q = Y.n_cols;
   for(i=0; i < q; i++){
     k = max(Y.col(i)); tem = ones(k+1);
-    tem.subvec(1,k) = log(linspace(0,k-1,k) + Phi(i));
-    a = tem; a(0) = 0;
-    a = cumsum(a);
-    for( j=0; j < (int) Y.n_rows; j++)
-      T1(j,i) = a(Y(j,i));
+    if (k > 0){
+      tem.subvec(1,k) = log(linspace(0,k-1,k) + Phi(i));
+      a = tem; a(0) = 0;
+      a = cumsum(a);
+      for( j=0; j < (int) Y.n_rows; j++)
+        T1(j,i) = a(Y(j,i));
+    }
   }
 
   // compute T3
