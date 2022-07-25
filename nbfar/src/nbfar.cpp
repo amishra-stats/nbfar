@@ -280,13 +280,11 @@ arma::vec nbrrr_likelihood(const arma::mat &Y, const arma::mat &MU,
   int i,j,k, q = Y.n_cols;
   for(i=0; i < q; i++){
     k = max(Y.col(i)); tem = ones(k+1);
-    if (k > 0){
-      tem.subvec(1,k) = log(linspace(0,k-1,k) + Phi(i));
-      a = tem; a(0) = 0;
-      a = cumsum(a);
-      for( j=0; j < (int) Y.n_rows; j++)
-        T1(j,i) = a(Y(j,i));
-    }
+    tem.subvec(1,k) = log(linspace(0,k-1,k) + Phi(i));
+    a = tem; a(0) = 0;
+    a = cumsum(a);
+    for( j=0; j < (int) Y.n_rows; j++)
+      T1(j,i) = a(Y(j,i));
   }
 
   // compute T3
@@ -703,8 +701,6 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
   zpath.slice(ik) = Ct.rows(cIndex);
   philam.col(ik) = Phi;
 
-
-
   // defining auxilary variable for the loop
   int iter;
   double svk=0,suk=0,m1=1,lam,elp,fac,sv,su,suf = norm(xx,2);
@@ -719,6 +715,7 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
   arma::uvec tem_uvec;
   arma::vec time_prof = zeros<arma::vec>(5);
 
+ 
   // sv = (Y.max()+1)*n/2;
   // su = sqrt(Y.max()+1)*norm(xx,2)/2;
   // converggence: dev/obj
@@ -742,7 +739,7 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
     MU = exp(zb + xuv);
     // MU = ofset_exp%exp(X0*C);
     obj(0) = obj0;
-
+    
     // timer.tic();
     for(iter = 1; iter < maxit; iter++){
       // C_temp = C;
@@ -778,7 +775,7 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
       }
       time_prof(0)  += timer.toc();
 
-
+      
       // update ue
       tem_uvec = find(ve); ETA  = zb;
       ETA.cols(tem_uvec) = ETA.cols(tem_uvec) +  xuv*vest(tem_uvec).t();
@@ -801,7 +798,8 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
         C.rows(cIndexC) = 0*C.rows(cIndexC);
         // C.rows(cIndex) = Z00;
         // Phi = PHI00;
-        xuv = X2.cols(tem_uvec)*uest(tem_uvec);
+        // xuv = X2.cols(tem_uvec)*uest(tem_uvec);
+        xuv = X2*uest;
         break;
       } else {
         tem_uvec = find(uest);
@@ -857,6 +855,7 @@ Rcpp::List nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
     timer.tic();
     elp = timer.toc();
 
+    
     indlam(ii) = ii;
     uklam.col(ik) = ue%sd1(cIndexC);
     vklam.col(ik) = ve;
@@ -947,7 +946,6 @@ Rcpp::List cv_nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
   dev.fill(datum::nan); sdcal.fill(datum::nan);
 
   for(int ifold=0; ifold < nfold; ifold++){
-    // cout << "Fold " << ifold << std::endl;
     teIndex = indna(find(ID == ifold));
     trIndex = indna(find(ID != ifold));
     Ytr.zeros(); Yte.zeros();natr.zeros(); nate.zeros();
@@ -956,11 +954,13 @@ Rcpp::List cv_nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
     natr.elem(trIndex) = ones<vec>(trIndex.n_elem);
     nate.elem(teIndex) = ones<vec>(teIndex.n_elem);
     misind = 1;
+    // cout << "Fold b" << ifold << std::endl;
     fitF =  nbfar_cpp(Ytr, Xm,  nlam, cindex,
                       ofset, initw , Dini, Zini, PhiIni,
                       Uini, Vini, lmax , control, misind,
                       natr,
                       maxit, epsilon);
+    // cout << "Fold c" << ifold << std::endl;
     int nfit = fitF["nkpath"]; arma::vec  lamkpath = fitF["lamKpath"];
     arma::vec lamseq = fitF["lamseq"]; arma::cube mukpath = fitF["mukpath"];
     arma::cube etapath = fitF["etapath"]; arma::mat phipath = fitF["phipath"];
