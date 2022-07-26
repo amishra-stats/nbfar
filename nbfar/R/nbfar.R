@@ -354,7 +354,9 @@ nbrrr <- function(Yt, X, maxrank = 10,
     C <- matrix(rep(0,ncol(X0)*q), ncol(X0),q)
     C[cIndex,] <- Z0
     out = list(C = C, PHI = PHI0, sc = NA, sb =NA, mu = MU0,
-               objval = NA, diffobj =NA, converged = NA, ExecTimekpath = NA,
+               objval = NA, diffobj =NA, converged = NA, 
+               ExecTimekpath = NA,
+               cv.err = cbind(dev0,dev),
                maxit = NA, converge = NA, Z = Z0, D = 0,
                U = matrix(rep(0,ncol(X0) -length(cIndex))),
                V = matrix(rep(0,q)), Y = Yt, X =X)
