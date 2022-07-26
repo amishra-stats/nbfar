@@ -309,7 +309,16 @@ nbrrr <- function(Yt, X, maxrank = 10,
       # compute test sample error
       tem  <- nbrrr_likelihood(Yte, fitT[[ifold]]$mu, fitT[[ifold]]$eta,
                                fitT[[ifold]]$PHI, (!is.na(Yte)) + 0)
-      dev0[ifold]  <- nbrrr_likelihood(Yte, MU0, ETA0, PHI0, (!is.na(Yte)) + 0)[1]
+      
+      if(k ==1 ){
+        init_modelx <- nbzerosol_cpp(Ytr, X0[,cIndex,drop = FALSE], 
+                                     ofset, control,
+                                     misind, naind2)
+        ETA0x <- ofset + X0[, cIndex,drop = FALSE] %*% init_modelx$Z
+        dev0[ifold]  <- nbrrr_likelihood(Yte, exp(ETA0x), ETA0x, 
+                                         init_modelx$PHI,
+                                         (!is.na(Yte)) + 0)[1]
+      }
 
 
       dev[ifold, k] = tem[1];
