@@ -280,13 +280,21 @@ arma::vec nbrrr_likelihood(const arma::mat &Y, const arma::mat &MU,
   int i,j,k, q = Y.n_cols;
   for(i=0; i < q; i++){
     k = max(Y.col(i)); tem = ones(k+1);
-    tem.subvec(1,k) = log(linspace(0,k-1,k) + Phi(i));
+    // cout << "Fold e" << 1 << std::endl;
+    // cout << "Fold e" << k << std::endl;
+    // cout << "Fold e" << Phi(i) << std::endl;
+    if (k>0) {
+      tem.subvec(1,k) = log(linspace(0,k-1,k) + Phi(i));
+    }
+    // cout << "Fold e" << 2 << std::endl;
     a = tem; a(0) = 0;
+    // cout << "Fold e" << 3 << std::endl;
     a = cumsum(a);
+    // cout << "Fold e" << 4 << std::endl;
     for( j=0; j < (int) Y.n_rows; j++)
       T1(j,i) = a(Y(j,i));
   }
-
+  // cout << "Fold f" << q << std::endl;
   // compute T3
   arma::mat T3 = (Y.each_row()+Phi.t())%(log(1+ MU.each_row()/Phi.t())); // last
   arma::mat b = T1 + Y%(ETA.each_row() - log(Phi.t())) - T3; // likelohood
@@ -971,7 +979,9 @@ Rcpp::List cv_nbfar_cpp(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
       mutest.elem(trIndex) =  ones<vec>(trIndex.n_elem);
       etatest.elem(trIndex) =  zeros<vec>(trIndex.n_elem);
       phiest = phipath.col(im);
+      // cout << "Fold d" << im << std::endl;
       tttval = nbrrr_likelihood(Yte, mutest, etatest, phiest, nate);
+      // cout << "Fold e" << im << std::endl;
       dev(ifold, insel) = tttval(0);
       sdcal(ifold,insel) = tttval(1);
       tec(ifold) = tttval(2);
